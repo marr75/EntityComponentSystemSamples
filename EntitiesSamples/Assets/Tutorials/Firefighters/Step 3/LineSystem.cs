@@ -6,15 +6,12 @@ using Unity.Transforms;
 using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
-namespace Tutorials.Firefighters
-{
-    public partial struct LineSystem : ISystem
-    {
-        private uint seed;
+namespace Tutorials.Firefighters {
+    public partial struct LineSystem : ISystem {
+        uint seed;
 
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<RepositionLine>();
             state.RequireForUpdate<Heat>();
@@ -23,11 +20,9 @@ namespace Tutorials.Firefighters
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             var config = SystemAPI.GetSingleton<Config>();
-            var rand = new Random(123 +
-                                  seed++); // seed is incremented to get different random values in different frames
+            var rand = new Random(123 + seed++); // seed is incremented to get different random values in different frames
 
             var pondQuery = SystemAPI.QueryBuilder().WithAll<Pond, LocalTransform>().Build();
             var pondPositions = pondQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
@@ -36,16 +31,20 @@ namespace Tutorials.Firefighters
 
             // EnabledRefRW gives us access to the enabled state of RepositionLine.
             // The query will only match entities whose RepositionLine is enabled.
-            foreach (var (team, members, respositionLineState) in
-                     SystemAPI.Query<RefRO<Team>, DynamicBuffer<TeamMember>, EnabledRefRW<RepositionLine>>())
-            {
+            foreach (var (team, members, respositionLineState) in SystemAPI
+                .Query<RefRO<Team>, DynamicBuffer<TeamMember>, EnabledRefRW<RepositionLine>>()) {
                 respositionLineState.ValueRW = false; // disable RepositionLine
 
                 // set LinePos of the team's bots and set their bot state
                 {
                     var randomPondPos = pondPositions[rand.NextInt(pondPositions.Length)].Position.xz;
-                    var nearestFirePos = HeatSystem.NearestFire(randomPondPos, heatBuffer,
-                        config.GroundNumRows, config.GroundNumColumns, config.HeatDouseTargetMin);
+                    var nearestFirePos = HeatSystem.NearestFire(
+                        randomPondPos,
+                        heatBuffer,
+                        config.GroundNumRows,
+                        config.GroundNumColumns,
+                        config.HeatDouseTargetMin
+                    );
 
                     var douserIdx = members.Length / 2;
 
@@ -53,8 +52,7 @@ namespace Tutorials.Firefighters
                     var vecNorm = math.normalize(vec);
                     var offsetVec = new float2(-vecNorm.y, vecNorm.x);
 
-                    for (int i = 1; i <= douserIdx; i++)
-                    {
+                    for (var i = 1; i <= douserIdx; i++) {
                         var ratio = (float)i / (douserIdx + 1);
                         var offset = math.sin(math.lerp(0, math.PI, ratio)) * offsetVec * config.LineMaxOffset;
                         var pos = math.lerp(randomPondPos, nearestFirePos, ratio);
@@ -63,10 +61,7 @@ namespace Tutorials.Firefighters
                         bot.ValueRW.State = BotState.MOVE_TO_LINE;
                         bot.ValueRW.LinePos = pos + offset;
 
-                        if (bot.ValueRO.IsDouser)
-                        {
-                            bot.ValueRW.TargetPos = nearestFirePos;
-                        }
+                        if (bot.ValueRO.IsDouser) { bot.ValueRW.TargetPos = nearestFirePos; }
 
                         var otherBot = SystemAPI.GetComponentRW<Bot>(members[^i].Bot);
                         otherBot.ValueRW.State = BotState.MOVE_TO_LINE;
@@ -75,14 +70,10 @@ namespace Tutorials.Firefighters
 
                     var filler = SystemAPI.GetComponentRW<Bot>(team.ValueRO.Filler);
                     filler.ValueRW.LinePos = randomPondPos;
-                    
+
                     var bucket = SystemAPI.GetComponentRW<Bucket>(team.ValueRO.Bucket);
-                    if (bucket.ValueRO.IsCarried)
-                    {
-                        filler.ValueRW.State = BotState.MOVE_TO_LINE;
-                    }
-                    else
-                    {
+                    if (bucket.ValueRO.IsCarried) { filler.ValueRW.State = BotState.MOVE_TO_LINE; }
+                    else {
                         filler.ValueRW.TargetPos = SystemAPI.GetComponent<LocalTransform>(team.ValueRO.Bucket).Position.xz;
                         filler.ValueRW.State = BotState.MOVE_TO_BUCKET;
                     }

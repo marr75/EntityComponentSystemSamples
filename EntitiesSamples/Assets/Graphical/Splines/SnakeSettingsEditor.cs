@@ -3,19 +3,16 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Graphical.Splines
-{
+namespace Graphical.Splines {
     [CustomEditor(typeof(SnakeSettingsAuthoring))]
-    public class SnakeSettingsEditor : Editor
-    {
+    public class SnakeSettingsEditor : Editor {
         SerializedProperty Prefab;
         SerializedProperty Length;
         SerializedProperty Count;
         SerializedProperty Speed;
         SerializedProperty Spacing;
 
-        void OnEnable()
-        {
+        void OnEnable() {
             Prefab = serializedObject.FindProperty("Prefab");
             Length = serializedObject.FindProperty("NumPartsPerSnake");
             Count = serializedObject.FindProperty("NumSnakes");
@@ -23,8 +20,7 @@ namespace Graphical.Splines
             Spacing = serializedObject.FindProperty("Spacing");
         }
 
-        public override void OnInspectorGUI()
-        {
+        public override void OnInspectorGUI() {
             serializedObject.Update();
             EditorGUI.BeginDisabledGroup(Application.isPlaying);
             EditorGUILayout.PropertyField(Prefab);

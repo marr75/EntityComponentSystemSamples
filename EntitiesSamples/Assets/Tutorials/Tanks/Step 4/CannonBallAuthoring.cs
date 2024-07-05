@@ -3,14 +3,10 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
 
-namespace Tutorials.Tanks.Step4
-{
-    public class CannonBallAuthoring : MonoBehaviour
-    {
-        class Baker : Baker<CannonBallAuthoring>
-        {
-            public override void Bake(CannonBallAuthoring authoring)
-            {
+namespace Tutorials.Tanks.Step4 {
+    public class CannonBallAuthoring : MonoBehaviour {
+        class Baker : Baker<CannonBallAuthoring> {
+            public override void Bake(CannonBallAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
 
                 // By default, components are zero-initialized,
@@ -24,8 +20,7 @@ namespace Tutorials.Tanks.Step4
     }
 
     // Like for tanks, we are creating a component to identify the cannon ball entities.
-    public struct CannonBall : IComponentData
-    {
+    public struct CannonBall : IComponentData {
         public float3 Velocity; // Used in a later step.
     }
 }

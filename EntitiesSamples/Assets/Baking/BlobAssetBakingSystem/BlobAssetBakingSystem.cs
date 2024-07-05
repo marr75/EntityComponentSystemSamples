@@ -5,70 +5,53 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Hash128 = Unity.Entities.Hash128;
 
-namespace Baking.BlobAssetBakingSystem
-{
+namespace Baking.BlobAssetBakingSystem {
     [WorldSystemFilter(WorldSystemFilterFlags.BakingSystem)]
-    public partial struct BlobAssetBakingSystem : ISystem
-    {
+    public partial struct BlobAssetBakingSystem : ISystem {
         NativeParallelHashMap<Hash128, BlobAssetReference<MeshBBBlobAsset>> m_BlobAssetReferences;
         NativeList<Entity> m_EntitiesToProcess;
 
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            m_BlobAssetReferences =
-                new NativeParallelHashMap<Hash128, BlobAssetReference<MeshBBBlobAsset>>(0, Allocator.Persistent);
+        public void OnCreate(ref SystemState state) {
+            m_BlobAssetReferences = new NativeParallelHashMap<Hash128, BlobAssetReference<MeshBBBlobAsset>>(0, Allocator.Persistent);
             m_EntitiesToProcess = new NativeList<Entity>(Allocator.Persistent);
 
             state.RequireForUpdate<MeshBB>();
         }
 
         [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
+        public void OnDestroy(ref SystemState state) {
             m_BlobAssetReferences.Dispose();
             m_EntitiesToProcess.Dispose();
         }
 
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             // Get the BlobAssetStore from the BakingSystem
             var blobAssetStore = state.World.GetExistingSystemManaged<BakingSystem>().BlobAssetStore;
 
             // Collect the BlobAssets that
             // - haven't already been processed in this run
             // - aren't already known to the BlobAssetStore from previous runs (if they are known, save the BlobAssetReference for later)
-            foreach (var (rawMesh, entity) in
-                     SystemAPI.Query<RefRO<RawMesh>>().WithAll<MeshBB>()
-                         .WithEntityAccess())
-            {
-                if (m_BlobAssetReferences.TryAdd(rawMesh.ValueRO.Hash, BlobAssetReference<MeshBBBlobAsset>.Null))
-                {
-                    if (blobAssetStore.TryGet<MeshBBBlobAsset>(rawMesh.ValueRO.Hash,
-                            out BlobAssetReference<MeshBBBlobAsset> blobAssetReference))
-                    {
+            foreach (var (rawMesh, entity) in SystemAPI.Query<RefRO<RawMesh>>().WithAll<MeshBB>().WithEntityAccess()) {
+                if (m_BlobAssetReferences.TryAdd(rawMesh.ValueRO.Hash, BlobAssetReference<MeshBBBlobAsset>.Null)) {
+                    if (blobAssetStore.TryGet<MeshBBBlobAsset>(rawMesh.ValueRO.Hash, out var blobAssetReference)) {
                         m_BlobAssetReferences[rawMesh.ValueRO.Hash] = blobAssetReference;
                     }
-                    else
-                    {
-                        m_EntitiesToProcess.Add(entity);
-                    }
+                    else { m_EntitiesToProcess.Add(entity); }
                 }
             }
 
             // Create the BlobAssets and BlobAssetReference for each new, unique BlobAsset
-            new ComputeBlobDataJob()
-            {
-                BlobAssetReferences = m_BlobAssetReferences,
-                EntitiesToProcess = m_EntitiesToProcess.AsArray(),
-                BufferLookup = SystemAPI.GetBufferLookup<MeshVertex>(),
-                ComponentLookup = SystemAPI.GetComponentLookup<RawMesh>(),
-            }.Schedule(m_EntitiesToProcess.Length, 1).Complete();
+            new ComputeBlobDataJob() {
+                    BlobAssetReferences = m_BlobAssetReferences,
+                    EntitiesToProcess = m_EntitiesToProcess.AsArray(),
+                    BufferLookup = SystemAPI.GetBufferLookup<MeshVertex>(),
+                    ComponentLookup = SystemAPI.GetComponentLookup<RawMesh>(),
+                }.Schedule(m_EntitiesToProcess.Length, 1)
+                .Complete();
 
             // Assign the BlobAssetReferences to all the entities that have a different BlobAsset than last run
-            foreach (var (rawMesh, meshBB) in
-                     SystemAPI.Query<RefRO<RawMesh>, RefRW<MeshBB>>())
-            {
+            foreach (var (rawMesh, meshBB) in SystemAPI.Query<RefRO<RawMesh>, RefRW<MeshBB>>()) {
                 var hash = rawMesh.ValueRO.Hash;
                 var blobAssetReference = m_BlobAssetReferences[hash];
                 blobAssetStore.TryAdd(hash, ref blobAssetReference);
@@ -81,8 +64,7 @@ namespace Baking.BlobAssetBakingSystem
     }
 
     [BurstCompile]
-    public struct ComputeBlobDataJob : IJobParallelFor
-    {
+    public struct ComputeBlobDataJob : IJobParallelFor {
         [NativeDisableParallelForRestriction]
         public NativeParallelHashMap<Hash128, BlobAssetReference<MeshBBBlobAsset>> BlobAssetReferences;
 
@@ -90,21 +72,18 @@ namespace Baking.BlobAssetBakingSystem
         [ReadOnly] public BufferLookup<MeshVertex> BufferLookup;
         [ReadOnly] public ComponentLookup<RawMesh> ComponentLookup;
 
-        public void Execute(int index)
-        {
+        public void Execute(int index) {
             var rawMesh = ComponentLookup[EntitiesToProcess[index]];
             var buffer = BufferLookup[EntitiesToProcess[index]];
 
             var minBoundingBox = float3.zero;
             var maxBoundingBox = float3.zero;
-            bool hasMesh = buffer.Length > 0;
+            var hasMesh = buffer.Length > 0;
 
-            if (hasMesh)
-            {
+            if (hasMesh) {
                 float xp = float.MinValue, yp = float.MinValue, zp = float.MinValue;
                 float xn = float.MaxValue, yn = float.MaxValue, zn = float.MaxValue;
-                for (int i = 0; i < buffer.Length; i++)
-                {
+                for (var i = 0; i < buffer.Length; i++) {
                     var p = buffer[i].Value;
                     xp = math.max(p.x, xp);
                     yp = math.max(p.y, yp);
@@ -118,16 +97,14 @@ namespace Baking.BlobAssetBakingSystem
                 maxBoundingBox = new float3(xp, yp, zp);
             }
 
-            using (var builder = new BlobBuilder(Allocator.Temp))
-            {
+            using (var builder = new BlobBuilder(Allocator.Temp)) {
                 ref var root = ref builder.ConstructRoot<MeshBBBlobAsset>();
 
                 var s = rawMesh.MeshScale;
                 root.MinBoundingBox = minBoundingBox * s;
                 root.MaxBoundingBox = maxBoundingBox * s;
 
-                BlobAssetReferences[rawMesh.Hash] =
-                    builder.CreateBlobAssetReference<MeshBBBlobAsset>(Allocator.Persistent);
+                BlobAssetReferences[rawMesh.Hash] = builder.CreateBlobAssetReference<MeshBBBlobAsset>(Allocator.Persistent);
             }
         }
     }

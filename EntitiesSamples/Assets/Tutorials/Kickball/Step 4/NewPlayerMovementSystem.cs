@@ -8,21 +8,17 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Tutorials.Kickball.Step4
-{
+namespace Tutorials.Kickball.Step4 {
     [UpdateBefore(typeof(TransformSystemGroup))]
-    public partial struct NewPlayerMovementSystem : ISystem
-    {
+    public partial struct NewPlayerMovementSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<NewPlayerMovement>();
             state.RequireForUpdate<Config>();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             var config = SystemAPI.GetSingleton<Config>();
             var obstacleQuery = SystemAPI.QueryBuilder().WithAll<LocalTransform, Obstacle>().Build();
 
@@ -31,18 +27,14 @@ namespace Tutorials.Kickball.Step4
             var input = new float3(horizontal, 0, vertical) * SystemAPI.Time.DeltaTime * config.PlayerSpeed;
 
             // Only move if the user has directional input.
-            if (input.Equals(float3.zero))
-            {
-                return;
-            }
+            if (input.Equals(float3.zero)) { return; }
 
             var minDist = config.ObstacleRadius + 0.5f; // the player capsule radius is 0.5f
 
-            var job = new PlayerMovementJob
-            {
+            var job = new PlayerMovementJob {
                 Input = input,
                 MinDistSQ = minDist * minDist,
-                ObstacleTransforms = obstacleQuery.ToComponentDataArray<LocalTransform>(state.WorldUpdateAllocator)
+                ObstacleTransforms = obstacleQuery.ToComponentDataArray<LocalTransform>(state.WorldUpdateAllocator),
             };
 
             job.ScheduleParallel();
@@ -50,21 +42,16 @@ namespace Tutorials.Kickball.Step4
     }
 
     // The implicit query of this IJobEntity matches all entities having LocalTransform and Player components.
-    [WithAll(typeof(Player))]
-    [BurstCompile]
-    public partial struct PlayerMovementJob : IJobEntity
-    {
+    [WithAll(typeof(Player)), BurstCompile]
+    public partial struct PlayerMovementJob : IJobEntity {
         [ReadOnly] public NativeArray<LocalTransform> ObstacleTransforms;
         public float3 Input;
         public float MinDistSQ;
 
-        public void Execute(ref LocalTransform transform)
-        {
+        public void Execute(ref LocalTransform transform) {
             var newPos = transform.Position + Input;
-            foreach (var obstacleTransform in ObstacleTransforms)
-            {
-                if (math.distancesq(newPos, obstacleTransform.Position) <= MinDistSQ)
-                {
+            foreach (var obstacleTransform in ObstacleTransforms) {
+                if (math.distancesq(newPos, obstacleTransform.Position) <= MinDistSQ) {
                     newPos = transform.Position;
                     break;
                 }

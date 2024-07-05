@@ -6,8 +6,7 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 
-namespace Boids
-{
+namespace Boids {
     // IJobNativeParallelMultiHashMapMergedSharedKeyIndices: custom job type, following its own defined custom safety rules:
     // A) because we know how hashmap safety works, B) we can iterate safely in parallel
     // Notable Features:
@@ -15,9 +14,10 @@ namespace Boids
     // a unique index (generally to the relevant data in some other collection).
     // 2) Each bucket is processed concurrently with other buckets.
     // 3) All key/value pairs in each bucket are processed individually (in sequential order) by a single thread.
-    [JobProducerType(typeof(JobNativeParallelMultiHashMapUniqueHashExtensions.JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<>))]
-    public interface IJobNativeParallelMultiHashMapMergedSharedKeyIndices
-    {
+    [JobProducerType(
+        typeof(JobNativeParallelMultiHashMapUniqueHashExtensions.JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<>)
+    )]
+    public interface IJobNativeParallelMultiHashMapMergedSharedKeyIndices {
         // The first time each key (=hash) is encountered, ExecuteFirst() is invoked with corresponding value (=index).
         void ExecuteFirst(int index);
 
@@ -28,10 +28,8 @@ namespace Boids
     }
 
     [BurstCompile]
-    public static class JobNativeParallelMultiHashMapUniqueHashExtensions
-    {
-        internal struct JobWrapper<T> where T : struct
-        {
+    public static class JobNativeParallelMultiHashMapUniqueHashExtensions {
+        internal struct JobWrapper<T> where T : struct {
             [ReadOnly] public NativeParallelMultiHashMap<int, int> HashMap;
             public T JobData;
         }
@@ -45,21 +43,17 @@ namespace Boids
         ///
         /// __Note__: While the Jobs package code generator handles this automatically for all closed job types, you must register those with generic arguments (like IJobChunk&amp;lt;MyJobType&amp;lt;T&amp;gt;&amp;gt;) manually for each specialization with [[Unity.Jobs.RegisterGenericJobTypeAttribute]].
         /// </remarks>
-        public static void EarlyJobInit<T>()
-            where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices
-        {
+        public static void EarlyJobInit<T>() where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices {
             JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>.Initialize();
         }
 
-        public static unsafe JobHandle Schedule<T>(this T jobData, NativeParallelMultiHashMap<int, int> hashMap,
-                int minIndicesPerJobCount, JobHandle dependsOn = default)
-            where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices
-        {
-            var jobWrapper = new JobWrapper<T>
-            {
-                HashMap = hashMap,
-                JobData = jobData,
-            };
+        public static unsafe JobHandle Schedule<T>(
+            this T jobData,
+            NativeParallelMultiHashMap<int, int> hashMap,
+            int minIndicesPerJobCount,
+            JobHandle dependsOn = default
+        ) where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices {
+            var jobWrapper = new JobWrapper<T> { HashMap = hashMap, JobData = jobData };
             JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>.Initialize();
             var reflectionData = JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>.reflectionData.Data;
             CollectionHelper.CheckReflectionDataCorrect<T>(reflectionData);
@@ -68,41 +62,54 @@ namespace Boids
                 UnsafeUtility.AddressOf(ref jobWrapper),
                 reflectionData,
                 dependsOn,
-                ScheduleMode.Parallel);
+                ScheduleMode.Parallel
+            );
 
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, hashMap.GetUnsafeBucketData().bucketCapacityMask + 1, minIndicesPerJobCount);
+            return JobsUtility.ScheduleParallelFor(
+                ref scheduleParams,
+                hashMap.GetUnsafeBucketData().bucketCapacityMask + 1,
+                minIndicesPerJobCount
+            );
         }
-
 
         [BurstCompile]
         internal struct JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>
-            where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices
-        {
-            internal static readonly SharedStatic<IntPtr> reflectionData = SharedStatic<IntPtr>.GetOrCreate<JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>>();
+            where T : struct, IJobNativeParallelMultiHashMapMergedSharedKeyIndices {
+            internal static readonly SharedStatic<IntPtr> reflectionData =
+                SharedStatic<IntPtr>.GetOrCreate<JobNativeParallelMultiHashMapMergedSharedKeyIndicesProducer<T>>();
 
             [BurstDiscard]
-            internal static void Initialize()
-            {
-                if (reflectionData.Data == IntPtr.Zero)
-                    reflectionData.Data = JobsUtility.CreateJobReflectionData(typeof(JobWrapper<T>), typeof(T), (ExecuteJobFunction)Execute);
+            internal static void Initialize() {
+                if (reflectionData.Data == IntPtr.Zero) {
+                    reflectionData.Data = JobsUtility.CreateJobReflectionData(
+                        typeof(JobWrapper<T>),
+                        typeof(T),
+                        (ExecuteJobFunction)Execute
+                    );
+                }
             }
 
-            delegate void ExecuteJobFunction(ref JobWrapper<T> jobWrapper, IntPtr additionalPtr, IntPtr bufferRangePatchData,
-                ref JobRanges ranges, int jobIndex);
+            delegate void ExecuteJobFunction(
+                ref JobWrapper<T> jobWrapper,
+                IntPtr additionalPtr,
+                IntPtr bufferRangePatchData,
+                ref JobRanges ranges,
+                int jobIndex
+            );
 
             [BurstCompile]
-            public static unsafe void Execute(ref JobWrapper<T> jobWrapper, IntPtr additionalPtr, IntPtr bufferRangePatchData,
-                ref JobRanges ranges, int jobIndex)
-            {
-                while (true)
-                {
+            public static unsafe void Execute(
+                ref JobWrapper<T> jobWrapper,
+                IntPtr additionalPtr,
+                IntPtr bufferRangePatchData,
+                ref JobRanges ranges,
+                int jobIndex
+            ) {
+                while (true) {
                     int begin;
                     int end;
 
-                    if (!JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
-                    {
-                        return;
-                    }
+                    if (!JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end)) { return; }
 
                     var bucketData = jobWrapper.HashMap.GetUnsafeBucketData();
                     var buckets = (int*)bucketData.buckets;
@@ -110,12 +117,10 @@ namespace Boids
                     var keys = bucketData.keys;
                     var values = bucketData.values;
 
-                    for (int i = begin; i < end; i++)
-                    {
-                        int entryIndex = buckets[i];
+                    for (var i = begin; i < end; i++) {
+                        var entryIndex = buckets[i];
 
-                        while (entryIndex != -1)
-                        {
+                        while (entryIndex != -1) {
                             var key = UnsafeUtility.ReadArrayElement<int>(keys, entryIndex);
                             var value = UnsafeUtility.ReadArrayElement<int>(values, entryIndex);
                             int firstValue;
@@ -126,22 +131,30 @@ namespace Boids
                             // [macton] Didn't expect a usecase for this with multiple same values
                             // (since it's intended use was for unique indices.)
                             // https://forum.unity.com/threads/ijobnativemultihashmapmergedsharedkeyindices-unexpected-behavior.569107/#post-3788170
-                            if (entryIndex == it.GetEntryIndex())
-                            {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobWrapper), value, 1);
-#endif
+                            if (entryIndex == it.GetEntryIndex()) {
+                                #if ENABLE_UNITY_COLLECTIONS_CHECKS
+                                JobsUtility.PatchBufferMinMaxRanges(
+                                    bufferRangePatchData,
+                                    UnsafeUtility.AddressOf(ref jobWrapper),
+                                    value,
+                                    1
+                                );
+                                #endif
                                 jobWrapper.JobData.ExecuteFirst(value);
                             }
-                            else
-                            {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                            else {
+                                #if ENABLE_UNITY_COLLECTIONS_CHECKS
                                 var startIndex = math.min(firstValue, value);
                                 var lastIndex = math.max(firstValue, value);
-                                var rangeLength = (lastIndex - startIndex) + 1;
+                                var rangeLength = lastIndex - startIndex + 1;
 
-                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobWrapper), startIndex, rangeLength);
-#endif
+                                JobsUtility.PatchBufferMinMaxRanges(
+                                    bufferRangePatchData,
+                                    UnsafeUtility.AddressOf(ref jobWrapper),
+                                    startIndex,
+                                    rangeLength
+                                );
+                                #endif
                                 jobWrapper.JobData.ExecuteNext(firstValue, value);
                             }
 

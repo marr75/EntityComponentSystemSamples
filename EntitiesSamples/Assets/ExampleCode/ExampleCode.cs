@@ -1,22 +1,15 @@
 using Unity.Entities;
 
-namespace ExampleCode
-{
-    public struct Foo : IComponentData
-    {
+namespace ExampleCode {
+    public struct Foo : IComponentData {
         public float Value;
     }
 
-    public struct Bar : IComponentData
-    {
+    public struct Bar : IComponentData {
         public float Value;
     }
 
-    public struct Apple : IComponentData
-    {
-    }
+    public struct Apple : IComponentData { }
 
-    public struct Banana : IComponentData
-    {
-    }
+    public struct Banana : IComponentData { }
 }

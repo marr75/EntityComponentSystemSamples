@@ -2,10 +2,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Boids
-{
-    public struct SampledAnimationClip : IComponentData
-    {
+namespace Boids {
+    public struct SampledAnimationClip : IComponentData {
         public float SampleRate;
         public int FrameCount;
 
@@ -17,8 +15,7 @@ namespace Boids
         public BlobAssetReference<TransformSamples> TransformSamplesBlob;
     }
 
-    public struct TransformSamples
-    {
+    public struct TransformSamples {
         public BlobArray<float3> TranslationSamples;
         public BlobArray<quaternion> RotationSamples;
     }

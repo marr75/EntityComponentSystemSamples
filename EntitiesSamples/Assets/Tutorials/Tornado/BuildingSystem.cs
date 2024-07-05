@@ -6,31 +6,26 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Tutorials.Tornado
-{
+namespace Tutorials.Tornado {
     /*
      * Updates the bars and joints of the buildings.
      * The force of the tornado breaks the joints.
      */
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    public partial struct BuildingSystem : ISystem
-    {
+    public partial struct BuildingSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<PointArrays>();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             var config = SystemAPI.GetSingleton<Config>();
             var pointData = SystemAPI.GetSingleton<PointArrays>();
             var time = (float)SystemAPI.Time.ElapsedTime;
 
-            state.Dependency = new PointUpdateJob
-            {
+            state.Dependency = new PointUpdateJob {
                 config = config,
                 currentPoints = pointData.current,
                 previousPoints = pointData.previous,
@@ -47,18 +42,16 @@ namespace Tutorials.Tornado
             var barDataHandle = SystemAPI.GetComponentTypeHandle<Bar>();
             var dependencies = new NativeArray<JobHandle>(clusters.Length, Allocator.Temp);
 
-            var barJob = new BarUpdateJob
-            {
+            var barJob = new BarUpdateJob {
                 config = config,
                 barDataTypeHandle = barDataHandle,
                 current = pointData.current,
                 previous = pointData.previous,
                 connectivity = pointData.connectivity,
-                counter = pointData.count
+                counter = pointData.count,
             };
 
-            for (int i = 0; i < clusters.Length; i++)
-            {
+            for (var i = 0; i < clusters.Length; i++) {
                 barQuery.SetSharedComponentFilter(clusters[i]);
                 dependencies[i] = barJob.Schedule(barQuery, state.Dependency);
             }
@@ -66,21 +59,13 @@ namespace Tutorials.Tornado
             state.Dependency = JobHandle.CombineDependencies(dependencies);
         }
 
-        public static float TornadoSway(float y, float time)
-        {
-            return math.sin(y / 5f + time / 4f) * 3f;
-        }
+        public static float TornadoSway(float y, float time) => math.sin(y / 5f + time / 4f) * 3f;
 
-
-        public static float2 Position(float time)
-        {
-            return new float2(math.cos(time / 6f), math.sin(time / 6f * 1.618f)) * 30f;
-        }
+        public static float2 Position(float time) => new float2(math.cos(time / 6f), math.sin(time / 6f * 1.618f)) * 30f;
     }
 
     [BurstCompile]
-    struct PointUpdateJob : IJobParallelFor
-    {
+    struct PointUpdateJob : IJobParallelFor {
         public Config config;
         public NativeArray<float3> currentPoints;
         public NativeArray<float3> previousPoints;
@@ -90,9 +75,8 @@ namespace Tutorials.Tornado
         public float tornadoFader;
         public float2 tornadoPosition;
 
-        public void Execute(int i)
-        {
-            if (connectivity[i] == byte.MaxValue) return;
+        public void Execute(int i) {
+            if (connectivity[i] == byte.MaxValue) { return; }
 
             var point = currentPoints[i];
             var start = point;
@@ -101,20 +85,17 @@ namespace Tutorials.Tornado
             previous.y += .01f;
 
             // tornado force
-            float tdx = tornadoPosition.x + BuildingSystem.TornadoSway(point.y, time) - point.x;
-            float tdz = tornadoPosition.y - point.z;
-            float tornadoDist = math.sqrt(tdx * tdx + tdz * tdz);
+            var tdx = tornadoPosition.x + BuildingSystem.TornadoSway(point.y, time) - point.x;
+            var tdz = tornadoPosition.y - point.z;
+            var tornadoDist = math.sqrt(tdx * tdx + tdz * tdz);
             tdx /= tornadoDist;
             tdz /= tornadoDist;
-            if (tornadoDist < config.TornadoMaxForceDist)
-            {
-                float force = 1f - tornadoDist / config.TornadoMaxForceDist;
-                float yFader = math.saturate(1f - point.y / config.TornadoHeight);
-                force *= tornadoFader * config.TornadoForce *
-                         Random.CreateFromIndex(randomSeed ^ (uint)i).NextFloat(-.3f, 1.3f);
+            if (tornadoDist < config.TornadoMaxForceDist) {
+                var force = 1f - tornadoDist / config.TornadoMaxForceDist;
+                var yFader = math.saturate(1f - point.y / config.TornadoHeight);
+                force *= tornadoFader * config.TornadoForce * Random.CreateFromIndex(randomSeed ^ (uint)i).NextFloat(-.3f, 1.3f);
 
-                var forceVec = new float3
-                {
+                var forceVec = new float3 {
                     x = -tdz + tdx * config.TornadoInwardForce * yFader,
                     y = config.TornadoUpForce,
                     z = tdx + tdz * config.TornadoInwardForce * yFader,
@@ -126,8 +107,7 @@ namespace Tutorials.Tornado
             point += (point - previous) * (1 - config.BarDamping);
 
             previous = start;
-            if (point.y < 0f)
-            {
+            if (point.y < 0f) {
                 point.y = 0f;
                 previous.y = -previous.y;
                 previous.x += (point.x - previous.x) * config.BarFriction;
@@ -140,8 +120,7 @@ namespace Tutorials.Tornado
     }
 
     [BurstCompile]
-    struct BarUpdateJob : IJobChunk
-    {
+    struct BarUpdateJob : IJobChunk {
         public Config config;
 
         [NativeDisableContainerSafetyRestriction]
@@ -159,13 +138,10 @@ namespace Tutorials.Tornado
         [NativeDisableContainerSafetyRestriction]
         public NativeReference<int> counter;
 
-        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
-            in v128 chunkEnabledMask)
-        {
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
             var barData = chunk.GetNativeArray(ref barDataTypeHandle);
 
-            for (int i = 0; i < chunk.Count; i++)
-            {
+            for (var i = 0; i < chunk.Count; i++) {
                 var bar = barData[i];
                 var iA = bar.pointA;
                 var iB = bar.pointB;
@@ -176,46 +152,31 @@ namespace Tutorials.Tornado
 
                 var d = currentB - currentA;
 
-                float dist = math.length(d);
-                float extraDist = dist - bar.length;
+                var dist = math.length(d);
+                var extraDist = dist - bar.length;
 
                 var push = d / dist * extraDist;
 
-                if (!anchorA && !anchorB)
-                {
+                if (!anchorA && !anchorB) {
                     currentA += push / 2;
                     currentB -= push / 2;
                 }
-                else if (anchorA)
-                {
-                    currentB -= push;
-                }
-                else if (anchorB)
-                {
-                    currentA += push;
-                }
+                else if (anchorA) { currentB -= push; }
+                else if (anchorB) { currentA += push; }
 
                 current[bar.pointA] = currentA;
                 current[bar.pointB] = currentB;
 
-                if (math.abs(extraDist) > config.BarBreakResistance)
-                {
-                    if (connectivity[iB] > 1 && !anchorB)
-                    {
-                        bar.pointB = DuplicatePoint(iB);
-                    }
-                    else if (connectivity[iA] > 1 && !anchorA)
-                    {
-                        bar.pointA = DuplicatePoint(iA);
-                    }
+                if (math.abs(extraDist) > config.BarBreakResistance) {
+                    if (connectivity[iB] > 1 && !anchorB) { bar.pointB = DuplicatePoint(iB); }
+                    else if (connectivity[iA] > 1 && !anchorA) { bar.pointA = DuplicatePoint(iA); }
                 }
 
                 barData[i] = bar;
             }
         }
 
-        int DuplicatePoint(int index)
-        {
+        int DuplicatePoint(int index) {
             var newIdx = counter.AtomicAdd(1);
             connectivity[index] = (byte)(connectivity[index] - 1);
 

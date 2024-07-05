@@ -1,14 +1,10 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace HelloCube.RandomSpawn
-{
-    public class CubeAuthoring : MonoBehaviour
-    {
-        public class Baker : Baker<CubeAuthoring>
-        {
-            public override void Bake(CubeAuthoring authoring)
-            {
+namespace HelloCube.RandomSpawn {
+    public class CubeAuthoring : MonoBehaviour {
+        public class Baker : Baker<CubeAuthoring> {
+            public override void Bake(CubeAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent<Cube>(entity);
                 AddComponent<NewSpawn>(entity);
@@ -16,11 +12,7 @@ namespace HelloCube.RandomSpawn
         }
     }
 
-    public struct Cube : IComponentData
-    {
-    }
+    public struct Cube : IComponentData { }
 
-    public struct NewSpawn : IComponentData
-    {
-    }
+    public struct NewSpawn : IComponentData { }
 }

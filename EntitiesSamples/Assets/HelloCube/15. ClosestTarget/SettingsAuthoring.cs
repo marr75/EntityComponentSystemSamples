@@ -1,10 +1,8 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace HelloCube.ClosestTarget
-{
-    public class SettingsAuthoring : MonoBehaviour
-    {
+namespace HelloCube.ClosestTarget {
+    public class SettingsAuthoring : MonoBehaviour {
         public int unitCount;
         public GameObject unitPrefab;
 
@@ -13,25 +11,24 @@ namespace HelloCube.ClosestTarget
 
         public TargetingSystem.SpatialPartitioningType spatialPartitioning;
 
-        class Baker : Baker<SettingsAuthoring>
-        {
-            public override void Bake(SettingsAuthoring authoring)
-            {
+        class Baker : Baker<SettingsAuthoring> {
+            public override void Bake(SettingsAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.None);
-                AddComponent(entity, new Settings
-                {
-                    UnitCount = authoring.unitCount,
-                    UnitPrefab = GetEntity(authoring.unitPrefab, TransformUsageFlags.Dynamic),
-                    TargetCount = authoring.targetCount,
-                    TargetPrefab = GetEntity(authoring.targetPrefab, TransformUsageFlags.Dynamic),
-                    SpatialPartitioning = authoring.spatialPartitioning
-                });
+                AddComponent(
+                    entity,
+                    new Settings {
+                        UnitCount = authoring.unitCount,
+                        UnitPrefab = GetEntity(authoring.unitPrefab, TransformUsageFlags.Dynamic),
+                        TargetCount = authoring.targetCount,
+                        TargetPrefab = GetEntity(authoring.targetPrefab, TransformUsageFlags.Dynamic),
+                        SpatialPartitioning = authoring.spatialPartitioning,
+                    }
+                );
             }
         }
     }
 
-    public struct Settings : IComponentData
-    {
+    public struct Settings : IComponentData {
         public int UnitCount;
         public Entity UnitPrefab;
 

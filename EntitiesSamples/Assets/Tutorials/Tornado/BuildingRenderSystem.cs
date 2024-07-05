@@ -4,35 +4,24 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Tutorials.Tornado
-{
+namespace Tutorials.Tornado {
     /*
      * Updates the transforms of the bars.
      */
-    public partial struct BuildingRenderSystem : ISystem
-    {
+    public partial struct BuildingRenderSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<Config>();
+        public void OnCreate(ref SystemState state) { state.RequireForUpdate<Config>(); }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state) {
+            new PointRenderJob { CurrentPoints = SystemAPI.GetSingleton<PointArrays>().current }.ScheduleParallel();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-            new PointRenderJob
-            {
-                CurrentPoints = SystemAPI.GetSingleton<PointArrays>().current
-            }.ScheduleParallel();
-        }
-
-        [BurstCompile]
-        public partial struct PointRenderJob : IJobEntity
-        {
+        public partial struct PointRenderJob : IJobEntity {
             [ReadOnly] public NativeArray<float3> CurrentPoints;
 
-            public void Execute(ref LocalToWorld ltw, in Bar bar, in BarThickness thickness)
-            {
+            public void Execute(ref LocalToWorld ltw, in Bar bar, in BarThickness thickness) {
                 var a = CurrentPoints[bar.pointA];
                 var b = CurrentPoints[bar.pointB];
 

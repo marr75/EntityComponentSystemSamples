@@ -4,33 +4,20 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Baking.BlobAssetBakingSystem
-{
+namespace Baking.BlobAssetBakingSystem {
     [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor)]
-    public partial struct MeshRenderSystem : ISystem
-    {
+    public partial struct MeshRenderSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<MeshBB>();
-        }
+        public void OnCreate(ref SystemState state) { state.RequireForUpdate<MeshBB>(); }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-            new DrawBBJob().ScheduleParallel();
-        }
+        public void OnUpdate(ref SystemState state) { new DrawBBJob().ScheduleParallel(); }
     }
 
     [BurstCompile]
-    public partial struct DrawBBJob : IJobEntity
-    {
-        public void Execute(in MeshBB meshBB, in LocalToWorld t)
-        {
-            if (!meshBB.BlobData.IsCreated)
-            {
-                return;
-            }
+    public partial struct DrawBBJob : IJobEntity {
+        public void Execute(in MeshBB meshBB, in LocalToWorld t) {
+            if (!meshBB.BlobData.IsCreated) { return; }
 
             var min = meshBB.BlobData.Value.MinBoundingBox;
             var max = meshBB.BlobData.Value.MaxBoundingBox;

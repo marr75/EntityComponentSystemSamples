@@ -5,16 +5,12 @@ using Unity.Entities.Serialization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Streaming.AssetManagement
-{
-    public class AssetAuthoring : MonoBehaviour
-    {
+namespace Streaming.AssetManagement {
+    public class AssetAuthoring : MonoBehaviour {
         [SerializeField] public References References;
 
-        class Baker : Baker<AssetAuthoring>
-        {
-            public override void Bake(AssetAuthoring authoring)
-            {
+        class Baker : Baker<AssetAuthoring> {
+            public override void Bake(AssetAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.None);
                 AddComponent(entity, authoring.References);
             }
@@ -22,8 +18,7 @@ namespace Streaming.AssetManagement
     }
 
     [Serializable]
-    public struct References : IComponentData
-    {
+    public struct References : IComponentData {
         public EntitySceneReference EntitySceneReference;
         public EntityPrefabReference EntityPrefabReference;
         public WeakObjectSceneReference GameObjectSceneReference;
@@ -34,13 +29,10 @@ namespace Streaming.AssetManagement
         public WeakObjectReference<Shader> ShaderReference;
     }
 
-    public struct RequestUnload : IComponentData
-    {
-    }
+    public struct RequestUnload : IComponentData { }
 
-#if !UNITY_DISABLE_MANAGED_COMPONENTS
-    public class Loading : IComponentData
-    {
+    #if !UNITY_DISABLE_MANAGED_COMPONENTS
+    public class Loading : IComponentData {
         public Scene GameObjectScene;
         public GameObject GameObjectPrefabInstance;
         public GameObject MeshGameObjectInstance;
@@ -51,5 +43,5 @@ namespace Streaming.AssetManagement
         public Entity EntityPrefabInstance;
         public Shader ShaderInstance;
     }
-#endif
+    #endif
 }

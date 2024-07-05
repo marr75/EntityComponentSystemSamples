@@ -5,20 +5,16 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Baking.AutoAuthoring
-{
-#if !UNITY_DISABLE_MANAGED_COMPONENTS
-    public partial struct SpawnerSystem : ISystem
-    {
-        public void OnCreate(ref SystemState state)
-        {
+namespace Baking.AutoAuthoring {
+    #if !UNITY_DISABLE_MANAGED_COMPONENTS
+    public partial struct SpawnerSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Spawner>();
             state.RequireForUpdate<ManagedSpawner>();
             state.RequireForUpdate<BufferSpawner>();
         }
 
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             state.Enabled = false;
 
             // unmanaged spawner
@@ -29,8 +25,7 @@ namespace Baking.AutoAuthoring
                 state.EntityManager.Instantiate(spawner.Prefab, instances);
 
                 var offset = math.float3(0);
-                foreach (var entity in instances)
-                {
+                foreach (var entity in instances) {
                     state.EntityManager.SetComponentData(entity, LocalTransform.FromPosition(offset));
                     offset += spawner.Offset;
                 }
@@ -46,15 +41,13 @@ namespace Baking.AutoAuthoring
                 em.Instantiate(spawner.Prefab, instances);
 
                 var offset = math.float3(0);
-                foreach (var entity in instances)
-                {
+                foreach (var entity in instances) {
                     em.SetComponentData(entity, LocalTransform.FromPosition(offset));
                     offset += spawner.Offset;
 
                     var materialMeshInfo = em.GetComponentData<MaterialMeshInfo>(entity);
                     var renderMeshArray = em.GetSharedComponentManaged<RenderMeshArray>(entity);
-                    renderMeshArray.Materials[MaterialMeshInfo.StaticIndexToArrayIndex(materialMeshInfo.Material)] =
-                        spawner.Material;
+                    renderMeshArray.Materials[MaterialMeshInfo.StaticIndexToArrayIndex(materialMeshInfo.Material)] = spawner.Material;
                     renderMeshArray.ResetHash128();
 
                     em.SetSharedComponentManaged(entity, renderMeshArray);
@@ -65,14 +58,12 @@ namespace Baking.AutoAuthoring
             {
                 var spawnElements = SystemAPI.GetSingletonBuffer<BufferSpawner>();
                 var offset = math.float3(0);
-                for (int i = 0; i < spawnElements.Length; ++i)
-                {
+                for (var i = 0; i < spawnElements.Length; ++i) {
                     var element = spawnElements[i];
 
                     var instances = new NativeArray<Entity>(element.InstanceCount, Allocator.Temp);
                     state.EntityManager.Instantiate(element.Prefab, instances);
-                    foreach (var entity in instances)
-                    {
+                    foreach (var entity in instances) {
                         state.EntityManager.SetComponentData(entity, LocalTransform.FromPosition(offset));
                         offset += element.Offset;
                     }
@@ -80,5 +71,5 @@ namespace Baking.AutoAuthoring
             }
         }
     }
-#endif
+    #endif
 }

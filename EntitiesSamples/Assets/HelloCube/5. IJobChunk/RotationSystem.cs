@@ -5,26 +5,19 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace HelloCube.JobChunk
-{
-    public partial struct RotationSystem : ISystem
-    {
+namespace HelloCube.JobChunk {
+    public partial struct RotationSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<ExecuteIJobChunk>();
-        }
+        public void OnCreate(ref SystemState state) { state.RequireForUpdate<ExecuteIJobChunk>(); }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             var spinningCubesQuery = SystemAPI.QueryBuilder().WithAll<RotationSpeed, LocalTransform>().Build();
 
-            var job = new RotationJob
-            {
+            var job = new RotationJob {
                 TransformTypeHandle = SystemAPI.GetComponentTypeHandle<LocalTransform>(),
                 RotationSpeedTypeHandle = SystemAPI.GetComponentTypeHandle<RotationSpeed>(true),
-                DeltaTime = SystemAPI.Time.DeltaTime
+                DeltaTime = SystemAPI.Time.DeltaTime,
             };
 
             // Unlike an IJobEntity, an IJobChunk must be manually passed a query.
@@ -36,15 +29,12 @@ namespace HelloCube.JobChunk
     }
 
     [BurstCompile]
-    struct RotationJob : IJobChunk
-    {
+    struct RotationJob : IJobChunk {
         public ComponentTypeHandle<LocalTransform> TransformTypeHandle;
         [ReadOnly] public ComponentTypeHandle<RotationSpeed> RotationSpeedTypeHandle;
         public float DeltaTime;
 
-        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
-            in v128 chunkEnabledMask)
-        {
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
             // The useEnableMask parameter is true when one or more entities in
             // the chunk have components of the query that are disabled.
             // If none of the query component types implement IEnableableComponent,
@@ -55,8 +45,7 @@ namespace HelloCube.JobChunk
 
             var transforms = chunk.GetNativeArray(ref TransformTypeHandle);
             var rotationSpeeds = chunk.GetNativeArray(ref RotationSpeedTypeHandle);
-            for (int i = 0, chunkEntityCount = chunk.Count; i < chunkEntityCount; i++)
-            {
+            for (int i = 0, chunkEntityCount = chunk.Count; i < chunkEntityCount; i++) {
                 transforms[i] = transforms[i].RotateY(rotationSpeeds[i].RadiansPerSecond * DeltaTime);
             }
         }

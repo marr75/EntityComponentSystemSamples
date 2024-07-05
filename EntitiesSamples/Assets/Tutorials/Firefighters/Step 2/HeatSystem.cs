@@ -8,13 +8,10 @@ using Unity.Transforms;
 using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
-namespace Tutorials.Firefighters
-{
-    public partial struct HeatSystem : ISystem
-    {
+namespace Tutorials.Firefighters {
+    public partial struct HeatSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<GroundCell>();
             state.RequireForUpdate<Heat>();
@@ -22,10 +19,9 @@ namespace Tutorials.Firefighters
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             var config = SystemAPI.GetSingleton<Config>();
-            DynamicBuffer<Heat> heatBuffer = SystemAPI.GetSingletonBuffer<Heat>(false);
+            var heatBuffer = SystemAPI.GetSingletonBuffer<Heat>(false);
 
             // simulate the heat spreading
             {
@@ -42,19 +38,16 @@ namespace Tutorials.Firefighters
             }
         }
 
-
-        private void HeatSpread_MainThread(ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config)
-        {
+        void HeatSpread_MainThread(ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config) {
             var heatRW = heatBuffer;
-            NativeArray<Heat> heatRO = heatBuffer.ToNativeArray(Allocator.Temp);
+            var heatRO = heatBuffer.ToNativeArray(Allocator.Temp);
             var speed = SystemAPI.Time.DeltaTime * config.HeatSpreadSpeed;
-            int numColumns = config.GroundNumColumns;
-            int numRows = config.GroundNumRows;
+            var numColumns = config.GroundNumColumns;
+            var numRows = config.GroundNumRows;
 
-            for (int index = 0; index < heatRO.Length; index++)
-            {
-                int row = index / numColumns;
-                int col = index % numRows;
+            for (var index = 0; index < heatRO.Length; index++) {
+                var row = index / numColumns;
+                var col = index % numRows;
 
                 var prevCol = col - 1;
                 var nextCol = col + 1;
@@ -76,53 +69,39 @@ namespace Tutorials.Firefighters
 
                 increase *= speed;
 
-                heatRW[index] = new Heat
-                {
-                    Value = math.min(1, heatRO[index].Value + increase)
-                };
+                heatRW[index] = new Heat { Value = math.min(1, heatRO[index].Value + increase) };
             }
         }
 
-        private static float Index(int row, int col, NativeArray<Heat> heatRO, int numColumns, int numRows)
-        {
-            if (col < 0 || col >= numColumns ||
-                row < 0 || row >= numRows)
-            {
-                return 0;
-            }
+        static float Index(int row, int col, NativeArray<Heat> heatRO, int numColumns, int numRows) {
+            if (col < 0 || col >= numColumns || row < 0 || row >= numRows) { return 0; }
 
             return heatRO[row * numColumns + col].Value;
         }
 
-        private JobHandle HeatSpread_SingleThreadedJob(JobHandle dependency, ref SystemState state,
-            DynamicBuffer<Heat> heatBuffer, Config config)
-        {
-            var heatSpreadJob = new HeatSpreadJob_SingleThreaded()
-            {
+        JobHandle HeatSpread_SingleThreadedJob(JobHandle dependency, ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config) {
+            var heatSpreadJob = new HeatSpreadJob_SingleThreaded() {
                 heatRW = heatBuffer.AsNativeArray(),
                 heatRO = heatBuffer.ToNativeArray(state.WorldUpdateAllocator),
                 HeatSpreadSpeed = SystemAPI.Time.DeltaTime * config.HeatSpreadSpeed,
                 NumColumns = config.GroundNumColumns,
-                NumRows = config.GroundNumRows
+                NumRows = config.GroundNumRows,
             };
             return heatSpreadJob.Schedule(dependency);
         }
 
         [BurstCompile]
-        public struct HeatSpreadJob_SingleThreaded : IJob
-        {
+        public struct HeatSpreadJob_SingleThreaded : IJob {
             public NativeArray<Heat> heatRW;
             [ReadOnly] public NativeArray<Heat> heatRO;
             public float HeatSpreadSpeed;
             public int NumColumns;
             public int NumRows;
 
-            public void Execute()
-            {
-                for (int index = 0; index < heatRO.Length; index++)
-                {
-                    int row = index / NumColumns;
-                    int col = index % NumColumns;
+            public void Execute() {
+                for (var index = 0; index < heatRO.Length; index++) {
+                    var row = index / NumColumns;
+                    var col = index % NumColumns;
 
                     var prevCol = col - 1;
                     var nextCol = col + 1;
@@ -144,52 +123,39 @@ namespace Tutorials.Firefighters
 
                     increase *= HeatSpreadSpeed;
 
-                    heatRW[index] = new Heat
-                    {
-                        Value = math.min(1, heatRO[index].Value + increase)
-                    };
+                    heatRW[index] = new Heat { Value = math.min(1, heatRO[index].Value + increase) };
                 }
             }
 
-            private float Index(int row, int col)
-            {
-                if (col < 0 || col >= NumColumns ||
-                    row < 0 || row >= NumRows)
-                {
-                    return 0;
-                }
+            float Index(int row, int col) {
+                if (col < 0 || col >= NumColumns || row < 0 || row >= NumRows) { return 0; }
 
                 return heatRO[row * NumColumns + col].Value;
             }
         }
 
-        private JobHandle HeatSpread_ParallelJob(JobHandle dependency, ref SystemState state,
-            DynamicBuffer<Heat> heatBuffer, Config config)
-        {
-            var heatSpreadJob = new HeatSpreadJob_Parallel
-            {
+        JobHandle HeatSpread_ParallelJob(JobHandle dependency, ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config) {
+            var heatSpreadJob = new HeatSpreadJob_Parallel {
                 heatRW = heatBuffer.AsNativeArray(),
                 heatRO = heatBuffer.ToNativeArray(state.WorldUpdateAllocator),
                 HeatSpreadSpeed = SystemAPI.Time.DeltaTime * config.HeatSpreadSpeed,
                 NumColumns = config.GroundNumColumns,
-                NumRows = config.GroundNumRows
+                NumRows = config.GroundNumRows,
             };
             return heatSpreadJob.Schedule(heatBuffer.Length, 100, dependency);
         }
 
         [BurstCompile]
-        public struct HeatSpreadJob_Parallel : IJobParallelFor
-        {
+        public struct HeatSpreadJob_Parallel : IJobParallelFor {
             public NativeArray<Heat> heatRW;
             [ReadOnly] public NativeArray<Heat> heatRO;
             public float HeatSpreadSpeed;
             public int NumColumns;
             public int NumRows;
 
-            public void Execute(int index)
-            {
-                int row = index / NumColumns;
-                int col = index % NumColumns;
+            public void Execute(int index) {
+                var row = index / NumColumns;
+                var col = index % NumColumns;
 
                 var prevCol = col - 1;
                 var nextCol = col + 1;
@@ -211,43 +177,30 @@ namespace Tutorials.Firefighters
 
                 increase *= HeatSpreadSpeed;
 
-                heatRW[index] = new Heat
-                {
-                    Value = math.min(1, heatRO[index].Value + increase)
-                };
+                heatRW[index] = new Heat { Value = math.min(1, heatRO[index].Value + increase) };
             }
 
-            private float Index(int row, int col)
-            {
-                if (col < 0 || col >= NumColumns ||
-                    row < 0 || row >= NumRows)
-                {
-                    return 0;
-                }
+            float Index(int row, int col) {
+                if (col < 0 || col >= NumColumns || row < 0 || row >= NumRows) { return 0; }
 
                 return heatRO[row * NumColumns + col].Value;
             }
         }
 
-
-        private void GroundCellUpdate_MainThread(ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config)
-        {
-            int idx = 0;
+        void GroundCellUpdate_MainThread(ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config) {
+            var idx = 0;
             var minY = -(config.GroundCellYScale / 2);
             var maxY = minY + config.GroundCellYScale;
             var elapsedTime = (float)SystemAPI.Time.ElapsedTime;
 
-            foreach (var (trans, color) in
-                     SystemAPI.Query<RefRW<LocalTransform>, RefRW<URPMaterialPropertyBaseColor>>()
-                         .WithAll<GroundCell>())
-            {
+            foreach (var (trans, color) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<URPMaterialPropertyBaseColor>>()
+                .WithAll<GroundCell>()) {
                 var heat = heatBuffer[idx].Value;
 
                 // oscillate the displayed heat so that the fire looks a little more organic
                 {
                     var radians = Random.CreateFromIndex((uint)idx).NextFloat(math.PI * 2) + elapsedTime;
-                    var oscillationOffset =
-                        math.sin(radians) * heat * config.HeatOscillationScale; // the more heat, the more oscillation
+                    var oscillationOffset = math.sin(radians) * heat * config.HeatOscillationScale; // the more heat, the more oscillation
                     heat += oscillationOffset;
                 }
 
@@ -258,12 +211,14 @@ namespace Tutorials.Firefighters
             }
         }
 
-        private JobHandle GroundCellUpdate_SingleThreadedJob(JobHandle dependency, ref SystemState state,
-            DynamicBuffer<Heat> heatBuffer, Config config)
-        {
+        JobHandle GroundCellUpdate_SingleThreadedJob(
+            JobHandle dependency,
+            ref SystemState state,
+            DynamicBuffer<Heat> heatBuffer,
+            Config config
+        ) {
             var minY = -(config.GroundCellYScale / 2);
-            var groundCellUpdateJob = new GroundCellUpdate
-            {
+            var groundCellUpdateJob = new GroundCellUpdate {
                 Config = config,
                 HeatBuffer = heatBuffer,
                 ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
@@ -274,12 +229,9 @@ namespace Tutorials.Firefighters
             return groundCellUpdateJob.Schedule(dependency);
         }
 
-        private JobHandle GroundCellUpdate_ParallelJob(JobHandle dependency, ref SystemState state,
-            DynamicBuffer<Heat> heatBuffer, Config config)
-        {
+        JobHandle GroundCellUpdate_ParallelJob(JobHandle dependency, ref SystemState state, DynamicBuffer<Heat> heatBuffer, Config config) {
             var minY = -(config.GroundCellYScale / 2);
-            var groundCellUpdateJob = new GroundCellUpdate
-            {
+            var groundCellUpdateJob = new GroundCellUpdate {
                 Config = config,
                 HeatBuffer = heatBuffer,
                 ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
@@ -290,25 +242,21 @@ namespace Tutorials.Firefighters
             return groundCellUpdateJob.ScheduleParallel(dependency);
         }
 
-        [WithAll(typeof(GroundCell))]
-        [BurstCompile]
-        public partial struct GroundCellUpdate : IJobEntity
-        {
+        [WithAll(typeof(GroundCell)), BurstCompile]
+        public partial struct GroundCellUpdate : IJobEntity {
             public float ElapsedTime;
             public Config Config;
             [ReadOnly] public DynamicBuffer<Heat> HeatBuffer;
             public float MinY;
             public float MaxY;
 
-            public void Execute(ref LocalTransform trans, ref URPMaterialPropertyBaseColor color, [EntityIndexInQuery] int entityIdx)
-            {
+            public void Execute(ref LocalTransform trans, ref URPMaterialPropertyBaseColor color, [EntityIndexInQuery] int entityIdx) {
                 var heat = HeatBuffer[entityIdx].Value;
 
                 // oscillate the displayed heat so that the fire looks a little more organic
                 {
                     var radians = Random.CreateFromIndex((uint)entityIdx).NextFloat(math.PI * 2) + ElapsedTime;
-                    var oscillationOffset =
-                        math.sin(radians) * heat * Config.HeatOscillationScale; // the more heat, the more oscillation
+                    var oscillationOffset = math.sin(radians) * heat * Config.HeatOscillationScale; // the more heat, the more oscillation
                     heat += oscillationOffset;
                 }
 
@@ -320,10 +268,9 @@ namespace Tutorials.Firefighters
         }
 
         // douse a cell and all surrounding cells
-        public static void DouseFire(float2 location, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols)
-        {
-            int col = (int)location.x;
-            int row = (int)location.y;
+        public static void DouseFire(float2 location, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols) {
+            var col = (int)location.x;
+            var row = (int)location.y;
 
             DouseCell(row, col, heatBuffer, numRows, numCols);
             DouseCell(row, col + 1, heatBuffer, numRows, numCols);
@@ -336,34 +283,25 @@ namespace Tutorials.Firefighters
             DouseCell(row + 1, col - 1, heatBuffer, numRows, numCols);
         }
 
-        private static void DouseCell(int row, int col, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols)
-        {
-            if (col < 0 || col >= numCols ||
-                row < 0 || row >= numRows)
-            {
-                return;
-            }
+        static void DouseCell(int row, int col, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols) {
+            if (col < 0 || col >= numCols || row < 0 || row >= numRows) { return; }
 
             heatBuffer[row * numCols + col] = new Heat { Value = 0 };
         }
 
-        public static float2 NearestFire(float2 location, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols, float minHeat)
-        {
+        public static float2 NearestFire(float2 location, DynamicBuffer<Heat> heatBuffer, int numRows, int numCols, float minHeat) {
             var closestFirePos = new float2(0.5f, 0.5f);
             var closestDistSq = float.MaxValue;
 
             // check every cell
-            for (int col = 0; col < numCols; col++)
-            {
-                for (int row = 0; row < numRows; row++)
-                {
+            for (var col = 0; col < numCols; col++) {
+                for (var row = 0; row < numRows; row++) {
                     if (heatBuffer[row * numCols + col].Value > minHeat) // is cell on fire
                     {
                         var firePos = new float2(col + 0.5f, row + 0.5f);
                         var distSq = math.distancesq(location, firePos);
 
-                        if (distSq < closestDistSq)
-                        {
+                        if (distSq < closestDistSq) {
                             closestFirePos = firePos;
                             closestDistSq = distSq;
                         }

@@ -4,19 +4,15 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Baking.BakingDependencies
-{
-#if !UNITY_DISABLE_MANAGED_COMPONENTS
-    public class ImageGeneratorAuthoring : MonoBehaviour
-    {
+namespace Baking.BakingDependencies {
+    #if !UNITY_DISABLE_MANAGED_COMPONENTS
+    public class ImageGeneratorAuthoring : MonoBehaviour {
         // The image is expected to have compression set to none and read/write enabled.
         public Texture2D Image;
         public ImageGeneratorInfo Info;
 
-        class Baker : Baker<ImageGeneratorAuthoring>
-        {
-            public override void Bake(ImageGeneratorAuthoring authoring)
-            {
+        class Baker : Baker<ImageGeneratorAuthoring> {
+            public override void Bake(ImageGeneratorAuthoring authoring) {
                 // The following 4 things should cause this baker to rerun:
 
                 // 1. Modifying the image.
@@ -38,9 +34,9 @@ namespace Baking.BakingDependencies
                 // - A reference to something missing (e.g. a texture which has been deleted from the assets folder)
                 // In the second case, registering a dependency on a reference to a missing asset will cause
                 // the baker to rerun when the missing asset is restored. This is the intended behavior.
-                if (authoring.Info == null) return;
-                if (authoring.Info.Mesh == null) return;
-                if (authoring.Image == null) return;
+                if (authoring.Info == null) { return; }
+                if (authoring.Info.Mesh == null) { return; }
+                if (authoring.Image == null) { return; }
 
                 // It is important to access other authoring components by using the GetComponent methods, because
                 // doing so registers dependencies. If we would have used authoring.transform here instead, a
@@ -62,18 +58,14 @@ namespace Baking.BakingDependencies
                 var mainEntity = GetEntity(TransformUsageFlags.None);
                 var entities = AddBuffer<ImageGeneratorEntity>(mainEntity);
 
-                var typeSet = new ComponentTypeSet(typeof(LocalTransform),
-                    typeof(LocalToWorld),
-                    typeof(URPMaterialPropertyBaseColor));
+                var typeSet = new ComponentTypeSet(typeof(LocalTransform), typeof(LocalToWorld), typeof(URPMaterialPropertyBaseColor));
 
-                for (int y = 0; y < sizeY; y++)
-                {
-                    for (int x = 0; x < sizeX; x++)
-                    {
+                for (var y = 0; y < sizeY; y++) {
+                    for (var x = 0; x < sizeX; x++) {
                         var pixel = authoring.Image.GetPixel(x, y);
 
                         // Skip fully transparent pixels.
-                        if (pixel.a == 0) continue;
+                        if (pixel.a == 0) { continue; }
 
                         // ManualOverride prevents the transform baking system from adding transform components
                         // to those entities, which would conflict with the ones we are explicitly adding here.
@@ -96,10 +88,12 @@ namespace Baking.BakingDependencies
                 // The rendering of entities requires an array of meshes and materials, and each entity identifies
                 // the mesh and material it uses by index. In this case, all the entities we have created will use
                 // the same mesh and the same material. Those still have to be provided as two arrays.
-                AddComponentObject(mainEntity, new MeshArrayBakingType
-                {
-                    meshArray = new RenderMeshArray(new[] { authoring.Info.Material }, new[] { authoring.Info.Mesh })
-                });
+                AddComponentObject(
+                    mainEntity,
+                    new MeshArrayBakingType {
+                        meshArray = new RenderMeshArray(new[] { authoring.Info.Material }, new[] { authoring.Info.Mesh }),
+                    }
+                );
 
                 // The only purpose of the current entity is to forward information to the baking system. It is
                 // useless at runtime. By adding BakingOnlyEntity to it, we request that the baking process should
@@ -113,21 +107,19 @@ namespace Baking.BakingDependencies
     // while the data (mesh and material) are coming from the baker. To communicate between the two, a baking
     // type is used. Baking types are not carried over to the destination world and remain in the baking world.
     [BakingType]
-    public class MeshArrayBakingType : IComponentData
-    {
+    public class MeshArrayBakingType : IComponentData {
         public RenderMeshArray meshArray;
     }
 
     // The set of entities created by the baker (one per pixel in the image) need to be sent to the baking system
     // in order to be properly setup as renderable entities. To this purpose, a baking type dynamic buffer is used.
     [BakingType]
-    public struct ImageGeneratorEntity : IBufferElementData
-    {
+    public struct ImageGeneratorEntity : IBufferElementData {
         Entity m_Value;
 
         // Implicit casting operators from and to the value embedded in a buffer element data makes it convenient to use.
         public static implicit operator Entity(ImageGeneratorEntity e) => e.m_Value;
         public static implicit operator ImageGeneratorEntity(Entity e) => new() { m_Value = e };
     }
-#endif
+    #endif
 }

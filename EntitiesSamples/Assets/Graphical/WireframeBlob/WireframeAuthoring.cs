@@ -3,15 +3,11 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Graphical.PrefabInitializer
-{
+namespace Graphical.PrefabInitializer {
     [RequireComponent(typeof(MeshFilter))]
-    public class WireframeAuthoring : MonoBehaviour
-    {
-        class Baker : Baker<WireframeAuthoring>
-        {
-            public override void Bake(WireframeAuthoring authoring)
-            {
+    public class WireframeAuthoring : MonoBehaviour {
+        class Baker : Baker<WireframeAuthoring> {
+            public override void Bake(WireframeAuthoring authoring) {
                 var sharedMesh = GetComponent<MeshFilter>().sharedMesh;
                 DependsOn(sharedMesh);
                 var meshVertices = sharedMesh.vertices;
@@ -21,14 +17,10 @@ namespace Graphical.PrefabInitializer
                 ref var blobData = ref blobBuilder.ConstructRoot<LocalSpaceBlob>();
 
                 var blobVerticesBuilder = blobBuilder.Allocate(ref blobData.Vertices, meshVertices.Length);
-                for (int i = 0; i < meshVertices.Length; i++)
-                {
-                    blobVerticesBuilder[i] = meshVertices[i];
-                }
+                for (var i = 0; i < meshVertices.Length; i++) { blobVerticesBuilder[i] = meshVertices[i]; }
 
                 var lineHash = new NativeHashSet<int2>(meshIndices.Length, Allocator.Temp);
-                for (int i = 0; i < meshIndices.Length; i += 3)
-                {
+                for (var i = 0; i < meshIndices.Length; i += 3) {
                     var a = meshIndices[i + 0];
                     var b = meshIndices[i + 1];
                     var c = meshIndices[i + 2];
@@ -38,35 +30,31 @@ namespace Graphical.PrefabInitializer
                 }
 
                 var blobSegmentsBuilder = blobBuilder.Allocate(ref blobData.Segments, lineHash.Count);
-                int segmentIndex = 0;
-                foreach (var line in lineHash)
-                {
+                var segmentIndex = 0;
+                foreach (var line in lineHash) {
                     blobSegmentsBuilder[segmentIndex] = line;
                     segmentIndex++;
                 }
 
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent(entity, new WireframeLocalSpace
-                {
-                    Blob = blobBuilder.CreateBlobAssetReference<LocalSpaceBlob>(Allocator.Persistent)
-                });
+                AddComponent(
+                    entity,
+                    new WireframeLocalSpace { Blob = blobBuilder.CreateBlobAssetReference<LocalSpaceBlob>(Allocator.Persistent) }
+                );
             }
         }
     }
 
-    public struct WireframeLocalSpace : IComponentData
-    {
+    public struct WireframeLocalSpace : IComponentData {
         public BlobAssetReference<LocalSpaceBlob> Blob;
     }
 
-    public struct LocalSpaceBlob
-    {
+    public struct LocalSpaceBlob {
         public BlobArray<float3> Vertices;
         public BlobArray<int2> Segments;
     }
 
-    public struct WireframeWorldSpace : IBufferElementData
-    {
+    public struct WireframeWorldSpace : IBufferElementData {
         public float3 Position;
     }
 }

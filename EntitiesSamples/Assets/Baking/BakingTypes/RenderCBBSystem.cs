@@ -2,23 +2,15 @@ using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Baking.BakingTypes
-{
+namespace Baking.BakingTypes {
     [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor)]
-    public partial struct RenderCBBSystem : ISystem
-    {
+    public partial struct RenderCBBSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<CompoundBBComponent>();
-        }
+        public void OnCreate(ref SystemState state) { state.RequireForUpdate<CompoundBBComponent>(); }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-            foreach (var bb
-                     in SystemAPI.Query<RefRO<CompoundBBComponent>>())
-            {
+        public void OnUpdate(ref SystemState state) {
+            foreach (var bb in SystemAPI.Query<RefRO<CompoundBBComponent>>()) {
                 var min = bb.ValueRO.MinBBVertex;
                 var max = bb.ValueRO.MaxBBVertex;
 

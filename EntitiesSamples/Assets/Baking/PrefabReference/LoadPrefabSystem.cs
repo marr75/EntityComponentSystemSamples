@@ -2,19 +2,13 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Scenes;
 
-namespace Baking.PrefabReference
-{
-    public partial struct LoadPrefabSystem : ISystem
-    {
+namespace Baking.PrefabReference {
+    public partial struct LoadPrefabSystem : ISystem {
         [BurstCompile]
-         public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<Config>();
-        }
+        public void OnCreate(ref SystemState state) { state.RequireForUpdate<Config>(); }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             state.Enabled = false;
 
             var config = SystemAPI.GetSingleton<Config>();
@@ -24,10 +18,7 @@ namespace Baking.PrefabReference
             // It will load the entity scene file corresponding to the prefab and add a PrefabLoadResult
             // component to the entity. The PrefabLoadResult component contains the entity you can use to
             // instantiate the prefab (see the PrefabReferenceSpawnerSystem system).
-            state.EntityManager.AddComponentData(configEntity, new RequestEntityPrefabLoaded
-            {
-                Prefab = config.PrefabReference
-            });
+            state.EntityManager.AddComponentData(configEntity, new RequestEntityPrefabLoaded { Prefab = config.PrefabReference });
         }
     }
 }

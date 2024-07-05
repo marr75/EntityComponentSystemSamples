@@ -4,20 +4,16 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace HelloCube.ClosestTarget
-{
-    public partial struct InitializationSystem : ISystem
-    {
+namespace HelloCube.ClosestTarget {
+    public partial struct InitializationSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Settings>();
             state.RequireForUpdate<ExecuteClosestTarget>();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             state.Enabled = false;
 
             var settings = SystemAPI.GetSingleton<Settings>();
@@ -27,18 +23,14 @@ namespace HelloCube.ClosestTarget
             Spawn(ref state, settings.TargetPrefab, settings.TargetCount, ref random);
         }
 
-        void Spawn(ref SystemState state, Entity prefab, int count, ref Random random)
-        {
+        void Spawn(ref SystemState state, Entity prefab, int count, ref Random random) {
             var units = state.EntityManager.Instantiate(prefab, count, Allocator.Temp);
 
-            for (int i = 0; i < units.Length; i += 1)
-            {
+            for (var i = 0; i < units.Length; i += 1) {
                 var position = new float3();
                 position.xz = random.NextFloat2() * 200 - 100;
-                state.EntityManager.SetComponentData(units[i],
-                    new LocalTransform { Position = position, Scale = 1 });
-                state.EntityManager.SetComponentData(units[i],
-                    new Movement { Value = random.NextFloat2Direction() });
+                state.EntityManager.SetComponentData(units[i], new LocalTransform { Position = position, Scale = 1 });
+                state.EntityManager.SetComponentData(units[i], new Movement { Value = random.NextFloat2Direction() });
             }
         }
     }

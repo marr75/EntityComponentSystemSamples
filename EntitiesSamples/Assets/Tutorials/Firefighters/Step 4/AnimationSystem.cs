@@ -5,15 +5,12 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Tutorials.Firefighters
-{
-    public partial struct AnimationSystem : ISystem
-    {
-        private bool isInitialized;
+namespace Tutorials.Firefighters {
+    public partial struct AnimationSystem : ISystem {
+        bool isInitialized;
 
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<Bot>();
             state.RequireForUpdate<ExecuteAnimation>();
@@ -21,10 +18,8 @@ namespace Tutorials.Firefighters
 
         // Because this update accesses managed objects, it cannot be Burst compiled,
         // so we do not add the [BurstCompile] attribute.
-        public void OnUpdate(ref SystemState state)
-        {
-            if (!isInitialized)
-            {
+        public void OnUpdate(ref SystemState state) {
+            if (!isInitialized) {
                 isInitialized = true;
 
                 var configEntity = SystemAPI.GetSingletonEntity<Config>();
@@ -32,17 +27,13 @@ namespace Tutorials.Firefighters
 
                 var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-                foreach (var (transform, entity) in
-                         SystemAPI.Query<RefRO<LocalTransform>>()
-                             .WithAll<Bot>()
-                             .WithEntityAccess())
-                {
+                foreach (var (transform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Bot>().WithEntityAccess()) {
                     var botAnimation = new BotAnimation();
-                    var go = GameObject.Instantiate(configManaged.BotAnimatedPrefabGO);
+                    var go = Object.Instantiate(configManaged.BotAnimatedPrefabGO);
                     botAnimation.AnimatedGO = go;
                     go.transform.localPosition = (Vector3)transform.ValueRO.Position;
                     ecb.AddComponent(entity, botAnimation);
-                    
+
                     // disable rendering
                     ecb.RemoveComponent<MaterialMeshInfo>(entity);
                 }
@@ -52,9 +43,7 @@ namespace Tutorials.Firefighters
 
             var isMovingId = Animator.StringToHash("IsMoving");
 
-            foreach (var (bot, transform, botAnimation) in
-                     SystemAPI.Query<RefRO<Bot>, RefRO<LocalTransform>, BotAnimation>())
-            {
+            foreach (var (bot, transform, botAnimation) in SystemAPI.Query<RefRO<Bot>, RefRO<LocalTransform>, BotAnimation>()) {
                 var pos = (Vector3)transform.ValueRO.Position;
                 pos.y = 0;
                 botAnimation.AnimatedGO.transform.localPosition = pos;

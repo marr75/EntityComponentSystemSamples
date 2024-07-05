@@ -4,19 +4,16 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Tutorials.Kickball.Step1
-{
+namespace Tutorials.Kickball.Step1 {
     // The systems in TransformSystemGroup compute the rendering matrix from an entity's LocalTransform component.
     // The UpdateBefore attribute makes this system update before the TransformSystemGroup, and consequently the
     // obstacles we spawn will have their rendering matrix computed in the same frame rather than the next frame.
     // (In this case, most players wouldn't notice the difference without this attribute: obstacles would just
     // appear one frame later.)
     [UpdateBefore(typeof(TransformSystemGroup))]
-    public partial struct ObstacleSpawnerSystem : ISystem
-    {
+    public partial struct ObstacleSpawnerSystem : ISystem {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             // RequireForUpdate<T> causes the system to skip updates
             // as long as no instances of component T exist in the world.
 
@@ -35,8 +32,7 @@ namespace Tutorials.Kickball.Step1
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             // We only want to spawn obstacles one time. Disabling the system stops subsequent updates.
             state.Enabled = false;
 
@@ -50,26 +46,25 @@ namespace Tutorials.Kickball.Step1
             var scale = config.ObstacleRadius * 2;
 
             // Spawn the obstacles in a grid.
-            for (int column = 0; column < config.NumColumns; column++)
-            {
-                for (int row = 0; row < config.NumRows; row++)
-                {
+            for (var column = 0; column < config.NumColumns; column++) {
+                for (var row = 0; row < config.NumRows; row++) {
                     // Instantiate copies an entity: a new entity is created with all the same component types
                     // and component values as the ObstaclePrefab entity.
                     var obstacle = state.EntityManager.Instantiate(config.ObstaclePrefab);
 
                     // Position the new obstacle by setting its LocalTransform component.
-                    state.EntityManager.SetComponentData(obstacle, new LocalTransform
-                    {
-                        Position = new float3
-                        {
-                            x = (column * config.ObstacleGridCellSize) + rand.NextFloat(config.ObstacleOffset),
-                            y = 0,
-                            z = (row * config.ObstacleGridCellSize) + rand.NextFloat(config.ObstacleOffset)
-                        },
-                        Scale = scale,
-                        Rotation = quaternion.identity
-                    });
+                    state.EntityManager.SetComponentData(
+                        obstacle,
+                        new LocalTransform {
+                            Position = new float3 {
+                                x = column * config.ObstacleGridCellSize + rand.NextFloat(config.ObstacleOffset),
+                                y = 0,
+                                z = row * config.ObstacleGridCellSize + rand.NextFloat(config.ObstacleOffset),
+                            },
+                            Scale = scale,
+                            Rotation = quaternion.identity,
+                        }
+                    );
                 }
             }
         }

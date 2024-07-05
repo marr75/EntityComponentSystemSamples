@@ -1,9 +1,7 @@
 using UnityEngine;
 
-namespace Tutorials.Jobs.Step1
-{
-    public class Spawner : MonoBehaviour
-    {
+namespace Tutorials.Jobs.Step1 {
+    public class Spawner : MonoBehaviour {
         // The set of targets is fixed, so rather than 
         // retrieve the targets every frame, we'll cache 
         // their transforms in this field.
@@ -15,30 +13,25 @@ namespace Tutorials.Jobs.Step1
         public int NumTargets;
         public Vector2 Bounds;
 
-        public void Start()
-        {
+        public void Start() {
             Random.InitState(123);
 
-            for (int i = 0; i < NumSeekers; i++)
-            {
-                GameObject go = GameObject.Instantiate(SeekerPrefab);
-                Seeker seeker = go.GetComponent<Seeker>();
-                Vector2 dir = Random.insideUnitCircle;
+            for (var i = 0; i < NumSeekers; i++) {
+                var go = Instantiate(SeekerPrefab);
+                var seeker = go.GetComponent<Seeker>();
+                var dir = Random.insideUnitCircle;
                 seeker.Direction = new Vector3(dir.x, 0, dir.y);
-                go.transform.localPosition = new Vector3(
-                    Random.Range(0, Bounds.x), 0, Random.Range(0, Bounds.y));
+                go.transform.localPosition = new Vector3(Random.Range(0, Bounds.x), 0, Random.Range(0, Bounds.y));
             }
 
             TargetTransforms = new Transform[NumTargets];
-            for (int i = 0; i < NumTargets; i++)
-            {
-                GameObject go = GameObject.Instantiate(TargetPrefab);
-                Target target = go.GetComponent<Target>();
-                Vector2 dir = Random.insideUnitCircle;
+            for (var i = 0; i < NumTargets; i++) {
+                var go = Instantiate(TargetPrefab);
+                var target = go.GetComponent<Target>();
+                var dir = Random.insideUnitCircle;
                 target.Direction = new Vector3(dir.x, 0, dir.y);
                 TargetTransforms[i] = go.transform;
-                go.transform.localPosition = new Vector3(
-                    Random.Range(0, Bounds.x), 0, Random.Range(0, Bounds.y));
+                go.transform.localPosition = new Vector3(Random.Range(0, Bounds.x), 0, Random.Range(0, Bounds.y));
             }
         }
     }

@@ -3,8 +3,7 @@ using AutoAuthoring;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Baking.AutoAuthoring.BakingTypeAutoAuthoring
-{
+namespace Baking.AutoAuthoring.BakingTypeAutoAuthoring {
     // In this example, the component Complex is bundling together many values that make sense to be edited together.
     // By defining an AutoAuthoring<Complex> MonoBehaviour, the component is automatically visible and editable in the inspector.
 
@@ -18,14 +17,10 @@ namespace Baking.AutoAuthoring.BakingTypeAutoAuthoring
     // giving the necessary flexibility to define the authoring components in a convenient way.
     // This facilitates easy prototyping while leaving open a path to optimize the data later.
 
-
     // Authoring component, optimized for convenient editing of the data.
-    public class BakingTypeAutoAuthoring : AutoAuthoring<Complex>
-    {
-        class Baker : Baker<BakingTypeAutoAuthoring>
-        {
-            public override void Bake(BakingTypeAutoAuthoring authoring)
-            {
+    public class BakingTypeAutoAuthoring : AutoAuthoring<Complex> {
+        class Baker : Baker<BakingTypeAutoAuthoring> {
+            public override void Bake(BakingTypeAutoAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
 
                 AddComponent(entity, new Speed { Value = authoring.Data.Properties.Speed });
@@ -37,28 +32,23 @@ namespace Baking.AutoAuthoring.BakingTypeAutoAuthoring
     }
 
     [Serializable]
-    public struct Properties
-    {
+    public struct Properties {
         public float3 Speed;
         public float3 Position;
         public float3 Rotation;
     }
 
-    [BakingType]
-    [Serializable]
-    public struct Complex : IComponentData
-    {
+    [BakingType, Serializable]
+    public struct Complex : IComponentData {
         public Entity Reference;
         public Properties Properties;
     }
 
-    public struct Speed : IComponentData
-    {
+    public struct Speed : IComponentData {
         public float3 Value;
     }
 
-    public struct SpawnPrefab : IComponentData
-    {
+    public struct SpawnPrefab : IComponentData {
         public Entity Prefab;
     }
 }

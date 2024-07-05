@@ -3,15 +3,11 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Tutorials.Kickball.Step3
-{
-    public class BallAuthoring : MonoBehaviour
-    {
-        class Baker : Baker<BallAuthoring>
-        {
-            public override void Bake(BallAuthoring authoring)
-            {
-               var entity = GetEntity(TransformUsageFlags.Dynamic);
+namespace Tutorials.Kickball.Step3 {
+    public class BallAuthoring : MonoBehaviour {
+        class Baker : Baker<BallAuthoring> {
+            public override void Bake(BallAuthoring authoring) {
+                var entity = GetEntity(TransformUsageFlags.Dynamic);
 
                 // A single authoring component can add multiple components to the entity.
                 AddComponent<Ball>(entity);
@@ -25,13 +21,10 @@ namespace Tutorials.Kickball.Step3
     }
 
     // A tag component for ball entities.
-    public struct Ball : IComponentData
-    {
-    }
+    public struct Ball : IComponentData { }
 
     // A 2d velocity vector for the ball entities.
-    public struct Velocity : IComponentData
-    {
+    public struct Velocity : IComponentData {
         public float2 Value;
     }
 }

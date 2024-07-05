@@ -3,7 +3,7 @@
 RWStructuredBuffer<uint4> _Waveform;
 Texture2D<float4> _Source;
 
-CBUFFER_START (Params)
+CBUFFER_START(Params)
     uint _IsLinear;
     uint4 _Channels;
 CBUFFER_END

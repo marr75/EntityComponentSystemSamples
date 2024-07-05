@@ -1,16 +1,12 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace HelloCube.CrossQuery
-{
-    public class PrefabCollectionAuthoring : MonoBehaviour
-    {
+namespace HelloCube.CrossQuery {
+    public class PrefabCollectionAuthoring : MonoBehaviour {
         public GameObject Box;
 
-        class Baker : Baker<PrefabCollectionAuthoring>
-        {
-            public override void Bake(PrefabCollectionAuthoring authoring)
-            {
+        class Baker : Baker<PrefabCollectionAuthoring> {
+            public override void Bake(PrefabCollectionAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.None);
 
                 PrefabCollection component = default;
@@ -21,9 +17,7 @@ namespace HelloCube.CrossQuery
         }
     }
 
-    public struct PrefabCollection : IComponentData
-    {
+    public struct PrefabCollection : IComponentData {
         public Entity Box;
     }
 }
-

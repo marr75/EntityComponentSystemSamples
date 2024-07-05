@@ -5,31 +5,24 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Random = Unity.Mathematics.Random;
 
-namespace HelloCube.RandomSpawn
-{
-    public partial struct SpawnSystem : ISystem
-    {
+namespace HelloCube.RandomSpawn {
+    public partial struct SpawnSystem : ISystem {
         uint seedOffset;
         float spawnTimer;
 
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
+        public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<ExecuteRandomSpawn>();
         }
 
         [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
+        public void OnUpdate(ref SystemState state) {
             const int count = 200;
             const float spawnWait = 0.05f; // 0.05 seconds
 
             spawnTimer -= SystemAPI.Time.DeltaTime;
-            if (spawnTimer > 0)
-            {
-                return;
-            }
+            if (spawnTimer > 0) { return; }
 
             spawnTimer = spawnWait;
 
@@ -45,21 +38,15 @@ namespace HelloCube.RandomSpawn
             // seedOffset must be incremented by the number of boxes every frame.
             seedOffset += count;
 
-            new RandomPositionJob
-            {
-                SeedOffset = seedOffset
-            }.ScheduleParallel();
+            new RandomPositionJob { SeedOffset = seedOffset }.ScheduleParallel();
         }
     }
 
-    [WithAll(typeof(NewSpawn))]
-    [BurstCompile]
-    partial struct RandomPositionJob : IJobEntity
-    {
+    [WithAll(typeof(NewSpawn)), BurstCompile]
+    partial struct RandomPositionJob : IJobEntity {
         public uint SeedOffset;
 
-        public void Execute([EntityIndexInQuery] int index, ref LocalTransform transform)
-        {
+        public void Execute([EntityIndexInQuery] int index, ref LocalTransform transform) {
             // Random instances with similar seeds produce similar results, so to get proper
             // randomness here, we use CreateFromIndex, which hashes the seed.
             var random = Random.CreateFromIndex(SeedOffset + (uint)index);

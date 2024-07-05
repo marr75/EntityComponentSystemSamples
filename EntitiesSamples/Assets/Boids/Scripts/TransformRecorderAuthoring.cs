@@ -5,21 +5,17 @@ using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
 
-namespace Boids
-{
+namespace Boids {
     // Demonstrate taking some data available in editor about GameObjects and save in
     // a runtime format suitable for Component system updates.
     // - Playback first attached animation clip (only expect one)
     // - Record positions and rotations at specified rate
     // - Store samples into DynamicBuffer
-    public class TransformRecorderAuthoring : MonoBehaviour
-    {
+    public class TransformRecorderAuthoring : MonoBehaviour {
         [Range(2, 120)] public int SamplesPerSecond = 60;
 
-        class Baker : Baker<TransformRecorderAuthoring>
-        {
-            public override void Bake(TransformRecorderAuthoring authoring)
-            {
+        class Baker : Baker<TransformRecorderAuthoring> {
+            public override void Bake(TransformRecorderAuthoring authoring) {
                 var animationClips = AnimationUtility.GetAnimationClips(authoring.gameObject);
                 var animationClip = animationClips[0];
                 var lengthSeconds = animationClip.length;
@@ -37,8 +33,7 @@ namespace Boids
                 var translationSamples = blobBuilder.Allocate(ref transformSamplesBlob.TranslationSamples, frameCount);
                 var rotationSamples = blobBuilder.Allocate(ref transformSamplesBlob.RotationSamples, frameCount);
 
-                for (int i = 0; i < frameCount; i++)
-                {
+                for (var i = 0; i < frameCount; i++) {
                     animationClip.SampleAnimation(authoring.gameObject, s);
 
                     translationSamples[i] = authoring.gameObject.transform.position;
@@ -48,15 +43,17 @@ namespace Boids
                 }
 
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent(entity, new SampledAnimationClip
-                {
-                    FrameCount = frameCount,
-                    SampleRate = sampleRate,
-                    CurrentTime = 0.0f,
-                    FrameIndex = 0,
-                    TimeOffset = 0,
-                    TransformSamplesBlob = blobBuilder.CreateBlobAssetReference<TransformSamples>(Allocator.Persistent)
-                });
+                AddComponent(
+                    entity,
+                    new SampledAnimationClip {
+                        FrameCount = frameCount,
+                        SampleRate = sampleRate,
+                        CurrentTime = 0.0f,
+                        FrameIndex = 0,
+                        TimeOffset = 0,
+                        TransformSamplesBlob = blobBuilder.CreateBlobAssetReference<TransformSamples>(Allocator.Persistent),
+                    }
+                );
 
                 blobBuilder.Dispose();
             }
