@@ -4,7 +4,7 @@ using Unity.Transforms;
 
 namespace HelloCube.CrossQuery {
     public partial struct MoveSystem : ISystem {
-        public float moveTimer;
+        public float MoveTimer;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) { state.RequireForUpdate<ExecuteCrossQuery>(); }
@@ -13,12 +13,12 @@ namespace HelloCube.CrossQuery {
         public void OnUpdate(ref SystemState state) {
             var dt = SystemAPI.Time.DeltaTime;
 
-            moveTimer += dt;
+            MoveTimer += dt;
 
             // periodically reverse direction and reset timer
             var flip = false;
-            if (moveTimer > 3.0f) {
-                moveTimer = 0;
+            if (MoveTimer > 3.0f) {
+                MoveTimer = 0;
                 flip = true;
             }
 

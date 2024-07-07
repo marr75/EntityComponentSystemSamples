@@ -5,27 +5,27 @@ using Unity.Transforms;
 
 namespace HelloCube.Reparenting {
     public partial struct ReparentingSystem : ISystem {
-        bool attached;
-        float timer;
-        const float interval = 0.7f;
-        EntityQuery query;
+        bool _attached;
+        float _timer;
+        const float Interval = 0.7f;
+        EntityQuery _query;
 
         public void OnCreate(ref SystemState state) {
-            timer = interval;
-            attached = true;
+            _timer = Interval;
+            _attached = true;
             state.RequireForUpdate<ExecuteReparenting>();
             state.RequireForUpdate<RotationSpeed>();
-            query = SystemAPI.QueryBuilder().WithAll<LocalTransform>().WithNone<RotationSpeed>().Build();
+            _query = SystemAPI.QueryBuilder().WithAll<LocalTransform>().WithNone<RotationSpeed>().Build();
         }
 
         public void OnUpdate(ref SystemState state) {
-            timer -= SystemAPI.Time.DeltaTime;
-            if (timer > 0) { return; }
-            timer = interval;
+            _timer -= SystemAPI.Time.DeltaTime;
+            if (_timer > 0) { return; }
+            _timer = Interval;
 
             var rotatorEntity = SystemAPI.GetSingletonEntity<RotationSpeed>();
             var ecb = new EntityCommandBuffer(Allocator.Temp);
-            if (attached) {
+            if (_attached) {
                 // Detach all children from the rotator by removing the Parent component from the children.
                 // (The next time TransformSystemGroup updates, it will update the Child buffer and transforms accordingly.)
                 var children = SystemAPI.GetBuffer<Child>(rotatorEntity);
@@ -37,11 +37,11 @@ namespace HelloCube.Reparenting {
                 // Attach all the small cubes to the rotator by adding a Parent component to the cubes.
                 // (The next time TransformSystemGroup updates, it will update the Child buffer and transforms accordingly.)
                 // Add a Parent value to all entities matching a query.
-                ecb.AddComponent(query, new Parent { Value = rotatorEntity });
+                ecb.AddComponent(_query, new Parent { Value = rotatorEntity });
             }
 
             ecb.Playback(state.EntityManager);
-            attached = !attached;
+            _attached = !_attached;
         }
     }
 }

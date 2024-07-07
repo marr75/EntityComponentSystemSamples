@@ -29,11 +29,11 @@ namespace HelloCube.Aspects {
     // An instance of this aspect wraps the LocalTransform and RotationSpeed components of a single entity.
     // (This trivial example is arguably not a worthwhile use case for aspects, but larger examples better demonstrate their utility.)
     readonly partial struct VerticalMovementAspect : IAspect {
-        readonly RefRW<LocalTransform> m_Transform;
-        readonly RefRO<RotationSpeed> m_Speed;
+        readonly RefRW<LocalTransform> _mTransform;
+        readonly RefRO<RotationSpeed> _mSpeed;
 
         public void Move(double elapsedTime) {
-            m_Transform.ValueRW.Position.y = (float)math.sin(elapsedTime * m_Speed.ValueRO.RadiansPerSecond);
+            _mTransform.ValueRW.Position.y = (float)math.sin(elapsedTime * _mSpeed.ValueRO.RadiansPerSecond);
         }
     }
 }

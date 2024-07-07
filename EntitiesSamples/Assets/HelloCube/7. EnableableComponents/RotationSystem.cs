@@ -15,15 +15,15 @@ namespace HelloCube.EnableableComponents {
             // Toggle the enabled state of every RotationSpeed
             foreach (var (enabled, speed) in SystemAPI.Query<EnabledRefRW<RotationSpeed>, RefRW<RotationSpeed>>()
                 .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)) {
-                speed.ValueRW.timeRemaining -= deltaTime;
-                if (!(speed.ValueRW.timeRemaining <= 0.0f)) { continue; }
+                speed.ValueRW.TimeRemaining -= deltaTime;
+                if (!(speed.ValueRW.TimeRemaining <= 0.0f)) { continue; }
                 enabled.ValueRW = !enabled.ValueRW;
-                speed.ValueRW.timeRemaining = speed.ValueRW.interval;
+                speed.ValueRW.TimeRemaining = speed.ValueRW.Interval;
             }
 
             // The query only matches entities whose RotationSpeed is enabled.
             foreach (var (transform, speed) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<RotationSpeed>>()) {
-                transform.ValueRW = transform.ValueRW.RotateY(speed.ValueRO.radiansPerSecond * deltaTime);
+                transform.ValueRW = transform.ValueRW.RotateY(speed.ValueRO.RadiansPerSecond * deltaTime);
             }
         }
     }

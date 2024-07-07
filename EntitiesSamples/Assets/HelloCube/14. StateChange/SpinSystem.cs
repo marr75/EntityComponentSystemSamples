@@ -16,7 +16,7 @@ namespace HelloCube.StateChange {
             state.Dependency.Complete();
             var before = ProfilerUnsafeUtility.Timestamp;
 
-            if (config.Mode == Mode.VALUE) {
+            if (config.Mode == Mode.Value) {
                 new SpinByValueJob { Offset = quaternion.RotateY(SystemAPI.Time.DeltaTime * math.PI) }.ScheduleParallel();
             }
             else { new SpinJob { Offset = quaternion.RotateY(SystemAPI.Time.DeltaTime * math.PI) }.ScheduleParallel(); }

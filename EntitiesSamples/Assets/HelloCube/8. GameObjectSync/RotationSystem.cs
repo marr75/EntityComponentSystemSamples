@@ -19,7 +19,7 @@ namespace HelloCube.GameObjectSync {
 
             var deltaTime = SystemAPI.Time.DeltaTime;
 
-            foreach (var (transform, speed, go) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<RotationSpeed>, RotatorGO>()) {
+            foreach (var (transform, speed, go) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<RotationSpeed>, RotatorGo>()) {
                 transform.ValueRW = transform.ValueRO.RotateY(speed.ValueRO.RadiansPerSecond * deltaTime);
 
                 // Update the associated GameObject's transform to match.

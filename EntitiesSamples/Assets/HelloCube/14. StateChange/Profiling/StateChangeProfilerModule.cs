@@ -11,32 +11,32 @@ namespace HelloCube.StateChange {
             public long SetStatePerf;
         }
 
-        static readonly string s_SpinPerfCounterLabel = "Spin System";
-        static readonly string s_SetStatePerfCounterLabel = "SetState System";
+        static readonly string SSpinPerfCounterLabel = "Spin System";
+        static readonly string SSetStatePerfCounterLabel = "SetState System";
 
-        static readonly ProfilerCounterValue<long> s_SpinPerfCounterValue = new(
+        static readonly ProfilerCounterValue<long> SSpinPerfCounterValue = new(
             ProfilerCategory.Scripts,
-            s_SpinPerfCounterLabel,
+            SSpinPerfCounterLabel,
             ProfilerMarkerDataUnit.TimeNanoseconds,
             ProfilerCounterOptions.FlushOnEndOfFrame
         );
 
-        static readonly ProfilerCounterValue<long> s_SetStatePerfCounterValue = new(
+        static readonly ProfilerCounterValue<long> SSetStatePerfCounterValue = new(
             ProfilerCategory.Scripts,
-            s_SetStatePerfCounterLabel,
+            SSetStatePerfCounterLabel,
             ProfilerMarkerDataUnit.TimeNanoseconds,
             ProfilerCounterOptions.FlushOnEndOfFrame
         );
 
-        static readonly ProfilerCounterDescriptor[] k_ChartCounters = {
-            new(s_SpinPerfCounterLabel, ProfilerCategory.Scripts), new(s_SetStatePerfCounterLabel, ProfilerCategory.Scripts),
+        static readonly ProfilerCounterDescriptor[] KChartCounters = {
+            new(SSpinPerfCounterLabel, ProfilerCategory.Scripts), new(SSetStatePerfCounterLabel, ProfilerCategory.Scripts),
         };
 
-        internal static long SpinPerf { set => s_SpinPerfCounterValue.Value = value; }
+        internal static long SpinPerf { set => SSpinPerfCounterValue.Value = value; }
 
-        internal static long UpdatePerf { set => s_SetStatePerfCounterValue.Value = value; }
+        internal static long UpdatePerf { set => SSetStatePerfCounterValue.Value = value; }
 
-        public StateChangeProfilerModule() : base(k_ChartCounters, ProfilerModuleChartType.StackedTimeArea) { }
+        public StateChangeProfilerModule() : base(KChartCounters, ProfilerModuleChartType.StackedTimeArea) { }
     }
 }
 

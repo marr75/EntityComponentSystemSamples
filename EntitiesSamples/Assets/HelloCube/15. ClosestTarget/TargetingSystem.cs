@@ -10,21 +10,21 @@ using Unity.Transforms;
 
 namespace HelloCube.ClosestTarget {
     public partial struct TargetingSystem : ISystem {
-        public enum SpatialPartitioningType { None, Simple, KDTree }
+        public enum SpatialPartitioningType { None, Simple, KdTree }
 
-        static NativeArray<ProfilerMarker> s_ProfilerMarkers;
+        static NativeArray<ProfilerMarker> _sProfilerMarkers;
 
         public void OnCreate(ref SystemState state) {
-            s_ProfilerMarkers = new NativeArray<ProfilerMarker>(3, Allocator.Persistent);
-            s_ProfilerMarkers[0] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.None);
-            s_ProfilerMarkers[1] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.Simple);
-            s_ProfilerMarkers[2] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.KDTree);
+            _sProfilerMarkers = new NativeArray<ProfilerMarker>(3, Allocator.Persistent);
+            _sProfilerMarkers[0] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.None);
+            _sProfilerMarkers[1] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.Simple);
+            _sProfilerMarkers[2] = new ProfilerMarker(nameof(TargetingSystem) + "." + SpatialPartitioningType.KdTree);
 
             state.RequireForUpdate<Settings>();
             state.RequireForUpdate<ExecuteClosestTarget>();
         }
 
-        public void OnDestroy(ref SystemState state) { s_ProfilerMarkers.Dispose(); }
+        public void OnDestroy(ref SystemState state) { _sProfilerMarkers.Dispose(); }
 
         public void OnUpdate(ref SystemState state) {
             var targetQuery = SystemAPI.QueryBuilder().WithAll<LocalTransform>().WithNone<Target, Settings>().Build();
@@ -32,7 +32,7 @@ namespace HelloCube.ClosestTarget {
 
             var spatialPartitioningType = SystemAPI.GetSingleton<Settings>().SpatialPartitioning;
 
-            using var profileMarker = s_ProfilerMarkers[(int)spatialPartitioningType].Auto();
+            using var profileMarker = _sProfilerMarkers[(int)spatialPartitioningType].Auto();
 
             var targetEntities = targetQuery.ToEntityArray(state.WorldUpdateAllocator);
             var targetTransforms = targetQuery.ToComponentDataArray<LocalTransform>(state.WorldUpdateAllocator);
@@ -59,7 +59,7 @@ namespace HelloCube.ClosestTarget {
                     state.Dependency = simple.ScheduleParallel(state.Dependency);
                     break;
                 }
-                case SpatialPartitioningType.KDTree: {
+                case SpatialPartitioningType.KdTree: {
                     var tree = new KDTree(targetEntities.Length, Allocator.TempJob, 64);
 
                     // init KD tree
@@ -70,7 +70,7 @@ namespace HelloCube.ClosestTarget {
 
                     state.Dependency = tree.BuildTree(targetEntities.Length, state.Dependency);
 
-                    var queryKdTree = new QueryKDTree {
+                    var queryKdTree = new QueryKdTree {
                         Tree = tree,
                         TargetEntities = targetEntities,
                         Scratch = default,
@@ -90,7 +90,7 @@ namespace HelloCube.ClosestTarget {
     }
 
     [BurstCompile]
-    public struct QueryKDTree : IJobChunk {
+    public struct QueryKdTree : IJobChunk {
         [ReadOnly] public NativeArray<Entity> TargetEntities;
         public PerThreadWorkingMemory Scratch;
         public KDTree Tree;

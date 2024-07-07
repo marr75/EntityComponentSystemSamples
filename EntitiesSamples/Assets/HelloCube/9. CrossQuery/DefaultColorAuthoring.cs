@@ -1,17 +1,19 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HelloCube.CrossQuery {
     public class DefaultColorAuthoring : MonoBehaviour {
-        public Color WhenNotColliding;
+        [FormerlySerializedAs("WhenNotColliding")]
+        public Color whenNotColliding;
 
         class Baker : Baker<DefaultColorAuthoring> {
             public override void Bake(DefaultColorAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.None);
 
                 var component = default(DefaultColor);
-                component.Value = (Vector4)authoring.WhenNotColliding;
+                component.Value = (Vector4)authoring.whenNotColliding;
 
                 AddComponent(entity, component);
             }

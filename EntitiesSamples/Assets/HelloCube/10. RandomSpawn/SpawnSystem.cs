@@ -7,8 +7,8 @@ using Random = Unity.Mathematics.Random;
 
 namespace HelloCube.RandomSpawn {
     public partial struct SpawnSystem : ISystem {
-        uint seedOffset;
-        float spawnTimer;
+        uint _seedOffset;
+        float _spawnTimer;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
@@ -21,10 +21,10 @@ namespace HelloCube.RandomSpawn {
             const int count = 200;
             const float spawnWait = 0.05f; // 0.05 seconds
 
-            spawnTimer -= SystemAPI.Time.DeltaTime;
-            if (spawnTimer > 0) { return; }
+            _spawnTimer -= SystemAPI.Time.DeltaTime;
+            if (_spawnTimer > 0) { return; }
 
-            spawnTimer = spawnWait;
+            _spawnTimer = spawnWait;
 
             // Remove the NewSpawn tag component from the entities spawned in the prior frame.
             var newSpawnQuery = SystemAPI.QueryBuilder().WithAll<NewSpawn>().Build();
@@ -36,9 +36,9 @@ namespace HelloCube.RandomSpawn {
 
             // Every spawned box needs a unique seed, so the
             // seedOffset must be incremented by the number of boxes every frame.
-            seedOffset += count;
+            _seedOffset += count;
 
-            new RandomPositionJob { SeedOffset = seedOffset }.ScheduleParallel();
+            new RandomPositionJob { SeedOffset = _seedOffset }.ScheduleParallel();
         }
     }
 

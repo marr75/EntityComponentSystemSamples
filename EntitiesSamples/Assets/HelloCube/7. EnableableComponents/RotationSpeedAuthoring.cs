@@ -1,7 +1,6 @@
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine.Serialization;
 
 namespace HelloCube.EnableableComponents {
     public class RotationSpeedAuthoring : MonoBehaviour {
@@ -16,9 +15,9 @@ namespace HelloCube.EnableableComponents {
                 AddComponent(
                     entity,
                     new RotationSpeed {
-                        radiansPerSecond = math.radians(authoring.degreesPerSecond),
-                        interval = authoring.interval,
-                        timeRemaining = authoring.interval,
+                        RadiansPerSecond = math.radians(authoring.degreesPerSecond),
+                        Interval = authoring.interval,
+                        TimeRemaining = authoring.interval,
                     }
                 );
                 SetComponentEnabled<RotationSpeed>(entity, authoring.startEnabled);
@@ -27,8 +26,8 @@ namespace HelloCube.EnableableComponents {
     }
 
     struct RotationSpeed : IComponentData, IEnableableComponent {
-        public float radiansPerSecond;
-        public float interval;
-        public float timeRemaining;
+        public float RadiansPerSecond;
+        public float Interval;
+        public float TimeRemaining;
     }
 }

@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace HelloCube.Prefabs {
     public partial struct SpawnSystem : ISystem {
-        uint updateCounter;
+        uint _updateCounter;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
@@ -33,7 +33,7 @@ namespace HelloCube.Prefabs {
 
                 // Unlike new Random(), CreateFromIndex() hashes the random seed
                 // so that similar seeds don't produce similar results.
-                var random = Random.CreateFromIndex(updateCounter++);
+                var random = Random.CreateFromIndex(_updateCounter++);
 
                 foreach (var entity in instances) {
                     // Update the entity's LocalTransform component with the new position.

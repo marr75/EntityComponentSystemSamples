@@ -33,8 +33,8 @@ namespace HelloCube.StateChange {
             state.Dependency.Complete();
             var before = ProfilerUnsafeUtility.Timestamp;
 
-            if (config.Mode == Mode.VALUE) { new SetValueJob { RadiusSq = radiusSq, Hit = hit.Value }.ScheduleParallel(); }
-            else if (config.Mode == Mode.STRUCTURAL_CHANGE) {
+            if (config.Mode == Mode.Value) { new SetValueJob { RadiusSq = radiusSq, Hit = hit.Value }.ScheduleParallel(); }
+            else if (config.Mode == Mode.StructuralChange) {
                 new AddSpinJob {
                     RadiusSq = radiusSq, Hit = hit.Value, ECB = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 }.ScheduleParallel();
@@ -43,7 +43,7 @@ namespace HelloCube.StateChange {
                     RadiusSq = radiusSq, Hit = hit.Value, ECB = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 }.ScheduleParallel();
             }
-            else if (config.Mode == Mode.ENABLEABLE_COMPONENT) {
+            else if (config.Mode == Mode.EnableableComponent) {
                 new EnableSpinJob {
                     RadiusSq = radiusSq, Hit = hit.Value, ECB = ecbSystem.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 }.ScheduleParallel();

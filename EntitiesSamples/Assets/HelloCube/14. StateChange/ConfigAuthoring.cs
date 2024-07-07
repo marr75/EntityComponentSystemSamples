@@ -1,13 +1,14 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HelloCube.StateChange {
     public class ConfigAuthoring : MonoBehaviour {
-        public GameObject Prefab;
-        public uint Size;
-        public float Radius;
-        public Mode Mode;
+        [FormerlySerializedAs("Prefab")] public GameObject prefab;
+        [FormerlySerializedAs("Size")] public uint size;
+        [FormerlySerializedAs("Radius")] public float radius;
+        [FormerlySerializedAs("Mode")] public Mode mode;
 
         class Baker : Baker<ConfigAuthoring> {
             public override void Bake(ConfigAuthoring authoring) {
@@ -16,10 +17,10 @@ namespace HelloCube.StateChange {
                 AddComponent(
                     entity,
                     new Config {
-                        Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic),
-                        Size = authoring.Size,
-                        Radius = authoring.Radius,
-                        Mode = authoring.Mode,
+                        Prefab = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
+                        Size = authoring.size,
+                        Radius = authoring.radius,
+                        Mode = authoring.mode,
                     }
                 );
                 AddComponent<Hit>(entity);
@@ -46,5 +47,5 @@ namespace HelloCube.StateChange {
         public bool IsSpinning;
     }
 
-    public enum Mode { VALUE = 1, STRUCTURAL_CHANGE = 2, ENABLEABLE_COMPONENT = 3 }
+    public enum Mode { Value = 1, StructuralChange = 2, EnableableComponent = 3 }
 }

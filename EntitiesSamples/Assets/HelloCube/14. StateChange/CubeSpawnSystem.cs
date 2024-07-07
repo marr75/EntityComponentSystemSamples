@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace HelloCube.StateChange {
     public partial struct CubeSpawnSystem : ISystem {
-        Config priorConfig;
+        Config _priorConfig;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
@@ -18,8 +18,8 @@ namespace HelloCube.StateChange {
         public void OnUpdate(ref SystemState state) {
             var config = SystemAPI.GetSingleton<Config>();
 
-            if (ConfigEquals(priorConfig, config)) { return; }
-            priorConfig = config;
+            if (ConfigEquals(_priorConfig, config)) { return; }
+            _priorConfig = config;
 
             var query = SystemAPI.QueryBuilder().WithAll<URPMaterialPropertyBaseColor>().Build();
             state.EntityManager.DestroyEntity(query);
@@ -37,8 +37,8 @@ namespace HelloCube.StateChange {
 
             var spinQuery = SystemAPI.QueryBuilder().WithAll<Spin>().Build();
 
-            if (config.Mode == Mode.VALUE) { state.EntityManager.AddComponent<Spin>(query); }
-            else if (config.Mode == Mode.ENABLEABLE_COMPONENT) {
+            if (config.Mode == Mode.Value) { state.EntityManager.AddComponent<Spin>(query); }
+            else if (config.Mode == Mode.EnableableComponent) {
                 state.EntityManager.AddComponent<Spin>(query);
                 state.EntityManager.SetComponentEnabled<Spin>(spinQuery, false);
             }

@@ -24,8 +24,8 @@ namespace HelloCube.GameObjectSync {
             var directory = go.GetComponent<Directory>();
 
             var directoryManaged = new DirectoryManaged();
-            directoryManaged.RotatorPrefab = directory.RotatorPrefab;
-            directoryManaged.RotationToggle = directory.RotationToggle;
+            directoryManaged.RotatorPrefab = directory.rotatorPrefab;
+            directoryManaged.RotationToggle = directory.rotationToggle;
 
             var entity = state.EntityManager.CreateEntity();
             state.EntityManager.AddComponentData(entity, directoryManaged);

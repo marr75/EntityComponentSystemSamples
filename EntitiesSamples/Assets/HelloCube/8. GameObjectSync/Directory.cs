@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace HelloCube.GameObjectSync {
@@ -8,7 +9,10 @@ namespace HelloCube.GameObjectSync {
     // all the managed objects in one place gets too unwieldy.)
 
     public class Directory : MonoBehaviour {
-        public GameObject RotatorPrefab;
-        public Toggle RotationToggle;
+        [FormerlySerializedAs("RotatorPrefab")]
+        public GameObject rotatorPrefab;
+
+        [FormerlySerializedAs("RotationToggle")]
+        public Toggle rotationToggle;
     }
 }

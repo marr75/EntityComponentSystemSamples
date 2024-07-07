@@ -4,9 +4,11 @@ using UnityEngine.Serialization;
 
 namespace HelloCube.FirstPersonController {
     public class ControllerAuthoring : MonoBehaviour {
-        public float MouseSensitivity = 50.0f;
-        public float PlayerSpeed = 5.0f;
-        public float JumpSpeed = 5.0f;
+        [FormerlySerializedAs("MouseSensitivity")]
+        public float mouseSensitivity = 50.0f;
+
+        [FormerlySerializedAs("PlayerSpeed")] public float playerSpeed = 5.0f;
+        [FormerlySerializedAs("JumpSpeed")] public float jumpSpeed = 5.0f;
 
         class Baker : Baker<ControllerAuthoring> {
             public override void Bake(ControllerAuthoring authoring) {
@@ -14,7 +16,7 @@ namespace HelloCube.FirstPersonController {
                 AddComponent(
                     entity,
                     new Controller {
-                        MouseSensitivity = authoring.MouseSensitivity, PlayerSpeed = authoring.PlayerSpeed, JumpSpeed = authoring.JumpSpeed,
+                        MouseSensitivity = authoring.mouseSensitivity, PlayerSpeed = authoring.playerSpeed, JumpSpeed = authoring.jumpSpeed,
                     }
                 );
                 AddComponent<InputState>(entity);
