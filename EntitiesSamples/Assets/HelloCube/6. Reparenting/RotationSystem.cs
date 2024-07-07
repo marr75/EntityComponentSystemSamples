@@ -12,7 +12,7 @@ namespace HelloCube.Reparenting {
             var deltaTime = SystemAPI.Time.DeltaTime;
 
             foreach (var (transform, speed) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<RotationSpeed>>()) {
-                transform.ValueRW = transform.ValueRO.RotateY(speed.ValueRO.RadiansPerSecond * deltaTime);
+                transform.ValueRW = transform.ValueRW.RotateY(speed.ValueRO.RadiansPerSecond * deltaTime);
             }
         }
     }
