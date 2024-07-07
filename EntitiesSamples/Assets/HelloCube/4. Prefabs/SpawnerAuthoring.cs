@@ -5,6 +5,7 @@ namespace HelloCube.Prefabs {
     // An authoring component is just a normal MonoBehavior that has a Baker<T> class.
     public class SpawnerAuthoring : MonoBehaviour {
         public GameObject Prefab;
+        public int Count = 100;
 
         // In baking, this Baker will run once for every SpawnerAuthoring instance in a subscene.
         // (Note that nesting an authoring component's Baker class inside the authoring MonoBehaviour class
@@ -12,12 +13,16 @@ namespace HelloCube.Prefabs {
         class Baker : Baker<SpawnerAuthoring> {
             public override void Bake(SpawnerAuthoring authoring) {
                 var entity = GetEntity(TransformUsageFlags.None);
-                AddComponent(entity, new Spawner { Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic) });
+                AddComponent(
+                    entity,
+                    new Spawner { Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic), Count = authoring.Count }
+                );
             }
         }
     }
 
     struct Spawner : IComponentData {
         public Entity Prefab;
+        public int Count;
     }
 }

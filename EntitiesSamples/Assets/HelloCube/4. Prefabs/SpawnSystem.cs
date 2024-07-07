@@ -24,10 +24,12 @@ namespace HelloCube.Prefabs {
 
             // Only spawn cubes when no cubes currently exist.
             if (spinningCubesQuery.IsEmpty) {
-                var prefab = SystemAPI.GetSingleton<Spawner>().Prefab;
+                var spawner = SystemAPI.GetSingleton<Spawner>();
+                var prefab = spawner.Prefab;
+                var spawnCount = spawner.Count;
 
                 // Instantiating an entity creates copy entities with the same component types and values.
-                var instances = state.EntityManager.Instantiate(prefab, 500, Allocator.Temp);
+                var instances = state.EntityManager.Instantiate(prefab, spawnCount, Allocator.Temp);
 
                 // Unlike new Random(), CreateFromIndex() hashes the random seed
                 // so that similar seeds don't produce similar results.
