@@ -9,10 +9,10 @@ namespace HelloCube.GameObjectSync {
     // all the managed objects in one place gets too unwieldy.)
 
     public class Directory : MonoBehaviour {
-        [FormerlySerializedAs("RotatorPrefab")]
-        public GameObject rotatorPrefab;
+        [FormerlySerializedAs("rotatorPrefab")]
+        public GameObject RotatorPrefab;
 
-        [FormerlySerializedAs("RotationToggle")]
-        public Toggle rotationToggle;
+        [FormerlySerializedAs("rotationToggle")]
+        public Toggle RotationToggle;
     }
 }

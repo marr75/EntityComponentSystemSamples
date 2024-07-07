@@ -11,7 +11,6 @@ namespace HelloCube.GameObjectSync {
         public void OnCreate(ref SystemState state) {
             // We need to wait for the scene to load before Updating, so we must RequireForUpdate at
             // least one component type loaded from the scene.
-
             state.RequireForUpdate<ExecuteGameObjectSync>();
         }
 
@@ -19,14 +18,11 @@ namespace HelloCube.GameObjectSync {
             state.Enabled = false;
 
             var go = GameObject.Find("Directory");
-            if (go == null) { throw new Exception("GameObject 'Directory' not found."); }
+            if (!go) { throw new Exception("GameObject 'Directory' not found."); }
 
             var directory = go.GetComponent<Directory>();
-
-            var directoryManaged = new DirectoryManaged();
-            directoryManaged.RotatorPrefab = directory.rotatorPrefab;
-            directoryManaged.RotationToggle = directory.rotationToggle;
-
+            var directoryManaged =
+                new DirectoryManaged { RotatorPrefab = directory.RotatorPrefab, RotationToggle = directory.RotationToggle };
             var entity = state.EntityManager.CreateEntity();
             state.EntityManager.AddComponentData(entity, directoryManaged);
         }

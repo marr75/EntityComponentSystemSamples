@@ -19,7 +19,7 @@ namespace HelloCube.GameObjectSync {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             // Instantiate the associated GameObject from the prefab.
-            foreach (var (goPrefab, entity) in SystemAPI.Query<RotationSpeed>().WithNone<RotatorGo>().WithEntityAccess()) {
+            foreach (var (_, entity) in SystemAPI.Query<RefRO<RotationSpeed>>().WithNone<RotatorGo>().WithEntityAccess()) {
                 var go = Object.Instantiate(directory.RotatorPrefab);
 
                 // We can't add components to entities as we iterate over them, so we defer the change with an ECB.
